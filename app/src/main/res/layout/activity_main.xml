@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/mainTopTextView"
+        android:layout_width="0dp"
+        android:layout_height="47dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="60dp"
+        android:layout_marginEnd="16dp"
+        android:text="Top"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/mainMiddleTextView"
+        android:layout_width="373dp"
+        android:layout_height="43dp"
+        android:layout_marginTop="8dp"
+        android:text="TextView"
+        app:layout_constraintEnd_toEndOf="@+id/mainTopTextView"
+        app:layout_constraintStart_toStartOf="@+id/mainTopTextView"
+        app:layout_constraintTop_toBottomOf="@+id/mainTopTextView" />
+
+    <TextView
+        android:id="@+id/mainBottomTextView"
+        android:layout_width="344dp"
+        android:layout_height="65dp"
+        android:layout_marginBottom="8dp"
+        android:text="Botton"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/mainMiddleTextView"
+        app:layout_constraintStart_toStartOf="@+id/mainMiddleTextView" />
+
+    <Button
+        android:id="@+id/main_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:onClick="onTestButtonClicked"
+        android:text="@string/TestButton"
+        app:layout_constraintEnd_toEndOf="@+id/mainMiddleTextView"
+        app:layout_constraintStart_toStartOf="@+id/mainMiddleTextView"
+        app:layout_constraintTop_toBottomOf="@+id/mainMiddleTextView" />
+
+    <Button
+        android:id="@+id/mainButtonMap"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:onClick="onMapButtonClicked"
+        android:text="@string/MapButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/main_button"
+        app:layout_constraintTop_toBottomOf="@+id/main_button" />
+
+    <Button
+        android:id="@+id/mainButtonCreateGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:onClick="onGroupButtonClicked"
+        android:text="List group"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/mainButtonMap"
+        app:layout_constraintTop_toBottomOf="@+id/mainButtonMap" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
