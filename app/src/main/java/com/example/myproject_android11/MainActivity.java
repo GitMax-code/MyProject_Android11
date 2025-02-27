@@ -76,6 +76,13 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    public void onJSONButtonClicked(View view){
+        // Créer une intention pour démarrer SecondActivity
+        Intent intent = new Intent(MainActivity.this, DataListActivity.class);
+        // Démarrer l'activité
+        startActivity(intent);
+    }
+
     @Override
     public void onStart(){
         super.onStart();
