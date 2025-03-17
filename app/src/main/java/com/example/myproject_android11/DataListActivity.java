@@ -47,7 +47,8 @@ public class DataListActivity extends AppCompatActivity {
     }
 
     private void fetchData() {
-        String apiUrl = "https://opendata.brussels.be/api/explore/v2.1/catalog/datasets/limites-administratives-des-communes-en-region-de-bruxelles-capitale/records?limit=20";
+        //String apiUrl = "https://opendata.brussels.be/api/explore/v2.1/catalog/datasets/limites-administratives-des-communes-en-region-de-bruxelles-capitale/records?limit=20";
+        String apiUrl = "https://opendata.brussels.be/api/explore/v2.1/catalog/datasets/limites-administratives-des-communes-en-region-de-bruxelles-capitale/records?limit=2";
         String jsonResponse = getJsonFromUrl(apiUrl);
 
         if (jsonResponse != null) {

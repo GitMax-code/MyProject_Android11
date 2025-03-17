@@ -2,7 +2,10 @@ package com.example.myproject_android11;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,6 +28,12 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Polygon;
 import org.osmdroid.views.overlay.Polyline;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +41,10 @@ public class MapActivity extends AppCompatActivity {
     private MapView mapView;
     private RequestQueue requestQueue;
 
+    private String testNameCommune;
+    private final Handler handler = new Handler(Looper.getMainLooper());
+
+    private static final String TAG = "DataListActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,13 +62,17 @@ public class MapActivity extends AppCompatActivity {
         mapView.getController().setCenter(new GeoPoint(50.8503, 4.3517)); // Centre sur Bruxelles
 
         // Initialisation de Volley
-        requestQueue = Volley.newRequestQueue(this);
+        //requestQueue = Volley.newRequestQueue(this);
 
         // Chargement des données et ajout des marqueurs
         //loadAndAddMarkers();
         //drawRedMarker();
         //drawPolyline();
+        testNameCommune = "rien";
         drawPolygone();
+        fetchData();
+        Toast.makeText(MapActivity.this, testNameCommune, Toast.LENGTH_SHORT).show();
+
     }
 
     private void drawRedMarker() {
@@ -91,6 +108,7 @@ public class MapActivity extends AppCompatActivity {
 
 
     private void drawPolygone(){
+
         ArrayList<GeoPoint> geoPoints = new ArrayList<>();
         GeoPoint geoPoint1 = new GeoPoint(50.8503, 4.3517);
         GeoPoint geoPoint2 = new GeoPoint(50.8503, 4.3527);
@@ -99,8 +117,9 @@ public class MapActivity extends AppCompatActivity {
         geoPoints.add(geoPoint2);
         geoPoints.add(geoPoint3);
         geoPoints.add(geoPoints.get(0));
-        Polygon polygone = new Polygon();
 
+        Polygon polygone = new Polygon();
+        Toast.makeText(this, "name" + polygone.getTitle(), Toast.LENGTH_SHORT).show();
         //FillPaint = contenu du polygone
         polygone.getFillPaint().setColor(Color.parseColor("#0000FF"));
         //OutlinePaint = bord du polygone
@@ -112,64 +131,83 @@ public class MapActivity extends AppCompatActivity {
 
     }
 
-    private void loadAndAddMarkers() {
-        String url = "https://opendata.brussels.be/api/explore/v2.1/catalog/datasets/limites-administratives-des-communes-en-region-de-bruxelles-capitale/records?limit=20";
+    private void fetchData() {
+        new Thread(() -> {
+            String apiUrl = "https://opendata.brussels.be/api/explore/v2.1/catalog/datasets/limites-administratives-des-communes-en-region-de-bruxelles-capitale/records?limit=20";
+            //String apiUrl = "https://opendata.brussels.be/api/explore/v2.1/catalog/datasets/limites-administratives-des-communes-en-region-de-bruxelles-capitale/records";
+            String jsonResponse = getJsonFromUrl(apiUrl);
 
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-                response -> {
-                    try {
-                        JSONArray records = response.getJSONArray("records");
-                        for (int i = 0; i < records.length(); i++) {
-                            JSONObject record = records.getJSONObject(i);
-                            JSONObject fields = record.getJSONObject("fields");
-                            JSONArray geomCoords = fields.getJSONObject("geom").getJSONArray("coordinates").getJSONArray(0);
-
-                            // Calculer le centre du polygone
-                            double sumLat = 0;
-                            double sumLon = 0;
-                            int numPoints = geomCoords.length();
-                            List<GeoPoint> polygonPoints = new ArrayList<>();
-
-                            for (int j = 0; j < numPoints; j++) {
-                                JSONArray coord = geomCoords.getJSONArray(j);
-                                double lon = coord.getDouble(0);
-                                double lat = coord.getDouble(1);
-                                sumLon += lon;
-                                sumLat += lat;
-                                polygonPoints.add(new GeoPoint(lat, lon)); // Ajouter les points du polygone
-                            }
-
-                            double centerLat = sumLat / numPoints;
-                            double centerLon = sumLon / numPoints;
-                            GeoPoint centerPoint = new GeoPoint(centerLat, centerLon);
-
-                            // Ajouter un marqueur au centre du polygone
-                            Marker marker = new Marker(mapView);
-                            marker.setPosition(centerPoint);
-                            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-                            marker.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_red_marker));
-                            mapView.getOverlays().add(marker);
-
-                            // Ajouter le polygone des limites communales
-                            Polygon polygon = new Polygon(mapView);
-                            polygon.setPoints(polygonPoints);
-                            polygon.setStrokeColor(0xFFFF0000); // Rouge
-                            polygon.setStrokeWidth(5);
-                            polygon.setFillColor(0x30FF0000); // Rouge semi-transparent
-                            mapView.getOverlays().add(polygon);
-                        }
-                        mapView.invalidate(); // Rafraîchir la carte
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        Toast.makeText(this, "Erreur JSON", Toast.LENGTH_SHORT).show();
-                    }
-                },
-                error -> {
-                    Toast.makeText(this, "Erreur de chargement des données", Toast.LENGTH_SHORT).show();
-                    Log.e("API_ERROR", "Erreur lors de la requête API", error);
-                }
-        );
-
-        requestQueue.add(jsonObjectRequest);
+            if (jsonResponse != null) {
+                Log.e(TAG, "jsonResponse not null");
+                parseJson(jsonResponse);
+            } else {
+                Log.e(TAG, "Failed to fetch data from URL");
+            }
+        }).start();
     }
+
+    private String getJsonFromUrl(String urlString) {
+        HttpURLConnection urlConnection = null;
+        BufferedReader reader = null;
+        String jsonStr = null;
+
+        try {
+            URL url = new URL(urlString);
+            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setRequestMethod("GET");
+            urlConnection.connect();
+
+            InputStream inputStream = urlConnection.getInputStream();
+            if (inputStream == null) {
+                return null;
+            }
+
+            reader = new BufferedReader(new InputStreamReader(inputStream));
+            StringBuilder buffer = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                buffer.append(line).append("\n");
+            }
+
+            if (buffer.length() == 0) {
+                return null;
+            }
+            jsonStr = buffer.toString();
+        } catch (IOException e) {
+            Log.e(TAG, "Error ", e);
+            return null;
+        } finally {
+            if (urlConnection != null) {
+                urlConnection.disconnect();
+            }
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (final IOException e) {
+                    Log.e(TAG, "Error closing stream", e);
+                }
+            }
+        }
+        return jsonStr;
+    }
+
+    private void parseJson(String jsonString) {
+        try {
+            JSONObject jsonObject = new JSONObject(jsonString);
+            JSONArray resultsArray = jsonObject.getJSONArray("results");
+            //JSONObject resultObject = resultsArray.
+            //String nameFr = resultObject.getString("name_fr");
+            //String nameNl = resultObject.getString("name_nl");
+            testNameCommune = "uccle";
+            handler.post(() -> {
+                Toast.makeText(MapActivity.this, testNameCommune, Toast.LENGTH_SHORT).show();
+            });
+        } catch (JSONException e) {
+            Log.e(TAG, "Error parsing JSON", e);
+            handler.post(() -> {
+                Toast.makeText(MapActivity.this, "Error parsing JSON", Toast.LENGTH_SHORT).show();
+            });
+        }
+    }
+
 }
