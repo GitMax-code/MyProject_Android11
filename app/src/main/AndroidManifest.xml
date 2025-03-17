@@ -5,6 +5,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- Retirez MANAGE_EXTERNAL_STORAGE si vous n'en avez pas besoin -->
 
     <application
         android:allowBackup="true"
@@ -12,62 +16,55 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyProject_Android11"
-        android:usesCleartextTraffic="true"
-        tools:targetApi="31">
-        <activity
-            android:name=".ListGroupActivity"
-            android:exported="false" />
-        <activity
-            android:name=".CreateGroupActivity"
-            android:exported="false" />
-        <activity
-            android:name=".FireStoreActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MapActivity"
-            android:exported="false" />
-        <!--
-             TODO: Before you run your application, you need a Google Maps API key.
+        android:usesCleartextTraffic="false"
+    tools:targetApi="31">
 
-             To get one, follow the directions here:
+    <activity
+        android:name=".ListUserAddedActivity"
+        android:exported="false" />
+    <activity
+        android:name=".ListUserNotAddedActivity"
+        android:exported="false" />
+    <activity
+        android:name=".ListGroupActivity"
+        android:exported="false" />
+    <activity
+        android:name=".CreateGroupActivity"
+        android:exported="false" />
+    <activity
+        android:name=".FireStoreActivity"
+        android:exported="false" />
+    <activity
+        android:name=".MapActivity"
+        android:exported="false" />
 
-                https://developers.google.com/maps/documentation/android-sdk/get-api-key
 
-             Once you have your API key (it starts with "AIza"), define a new property in your
-             project's local.properties file (e.g. MAPS_API_KEY=Aiza...), and replace the
-             "YOUR_API_KEY" string in this file with "${MAPS_API_KEY}".
-        -->
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_API_KEY" />
-
-        <activity
-            android:name=".LogoutActivity"
-            android:exported="false" />
-        <activity
-            android:name=".LoginActivity"
-            android:exported="false" />
-        <activity
-            android:name=".DataListActivity"
-            android:exported="false" />
-        <activity
-            android:name=".RegisterActivity"
-            android:exported="false" />
-        <activity
-            android:name=".TestActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-    </application>
-
-</manifest>
+    <activity
+        android:name=".LogoutActivity"
+        android:exported="false" />
+    <activity
+        android:name=".LoginActivity"
+        android:exported="false" />
+    <activity
+        android:name=".DataListActivity"
+        android:exported="false" />
+    <activity
+        android:name=".RegisterActivity"
+        android:exported="false" />
+    <activity
+        android:name=".TestActivity"
+        android:exported="false" />
+    <activity
+        android:name=".MainActivity"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity>
+</application>
+    </manifest>

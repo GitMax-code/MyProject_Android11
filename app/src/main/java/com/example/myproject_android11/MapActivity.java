@@ -2,13 +2,17 @@ package com.example.myproject_android11;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
+
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,6 +20,7 @@ import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Polygon;
 
 import java.util.ArrayList;
@@ -28,122 +33,94 @@ public class MapActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_map);
 
         // Configuration d'osmdroid
         Configuration.getInstance().setUserAgentValue(getPackageName());
-        setContentView(R.layout.activity_map);  // Utilise activity_map.xml
+        Configuration.getInstance().load(getApplicationContext(), PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
 
-        // Initialisation de la carte
-        mapView = findViewById(R.id.map);
+        // Initialisation de la MapView
+        mapView = findViewById(R.id.mapView);
         mapView.setTileSource(TileSourceFactory.MAPNIK);
         mapView.setMultiTouchControls(true);
         mapView.getController().setZoom(12.0);
-        mapView.getController().setCenter(new GeoPoint(50.8503, 4.3517)); // Bruxelles
+        mapView.getController().setCenter(new GeoPoint(50.8503, 4.3517)); // Centre sur Bruxelles
 
-        // Initialiser la requête API
+        // Initialisation de Volley
         requestQueue = Volley.newRequestQueue(this);
-        fetchCommuneBorders();
+
+        // Chargement des données et ajout des marqueurs
+        //loadAndAddMarkers();
+        drawRedMarker();
     }
 
-    private void fetchCommuneBorders() {
+    private void drawRedMarker() {
+        GeoPoint centerPoint = new GeoPoint(50.8503, 4.3517);
+        Marker marker = new Marker(mapView);
+        marker.setPosition(centerPoint);
+        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        marker.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_red_marker));
+        mapView.getOverlays().add(marker);
+    }
+
+    private void loadAndAddMarkers() {
         String url = "https://opendata.brussels.be/api/explore/v2.1/catalog/datasets/limites-administratives-des-communes-en-region-de-bruxelles-capitale/records?limit=20";
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            JSONArray records = response.getJSONArray("results");
-                            for (int i = 0; i < records.length(); i++) {
-                                JSONObject commune = records.getJSONObject(i);
-                                String name = commune.getJSONObject("fields").getString("name_fr");
-                                JSONObject geoShape = commune.getJSONObject("fields").getJSONObject("geo_shape");
-                                String geoType = geoShape.getString("type"); // Récupérer le type de géométrie
-                                JSONArray coordinates = geoShape.getJSONArray("coordinates");
+                response -> {
+                    try {
+                        JSONArray records = response.getJSONArray("records");
+                        for (int i = 0; i < records.length(); i++) {
+                            JSONObject record = records.getJSONObject(i);
+                            JSONObject fields = record.getJSONObject("fields");
+                            JSONArray geomCoords = fields.getJSONObject("geom").getJSONArray("coordinates").getJSONArray(0);
 
-                                // Vérifier le type de géométrie et dessiner en conséquence
-                                if ("Polygon".equals(geoType)) {
-                                    drawPolygon(coordinates, name); // Dessiner un polygone
-                                } else if ("MultiPolygon".equals(geoType)) {
-                                    drawMultiPolygon(coordinates, name); // Dessiner plusieurs polygones
-                                } else {
-                                    Log.e("GeoShapeError", "Type de géométrie non pris en charge : " + geoType);
-                                }
+                            // Calculer le centre du polygone
+                            double sumLat = 0;
+                            double sumLon = 0;
+                            int numPoints = geomCoords.length();
+                            List<GeoPoint> polygonPoints = new ArrayList<>();
+
+                            for (int j = 0; j < numPoints; j++) {
+                                JSONArray coord = geomCoords.getJSONArray(j);
+                                double lon = coord.getDouble(0);
+                                double lat = coord.getDouble(1);
+                                sumLon += lon;
+                                sumLat += lat;
+                                polygonPoints.add(new GeoPoint(lat, lon)); // Ajouter les points du polygone
                             }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+
+                            double centerLat = sumLat / numPoints;
+                            double centerLon = sumLon / numPoints;
+                            GeoPoint centerPoint = new GeoPoint(centerLat, centerLon);
+
+                            // Ajouter un marqueur au centre du polygone
+                            Marker marker = new Marker(mapView);
+                            marker.setPosition(centerPoint);
+                            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+                            marker.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_red_marker));
+                            mapView.getOverlays().add(marker);
+
+                            // Ajouter le polygone des limites communales
+                            Polygon polygon = new Polygon(mapView);
+                            polygon.setPoints(polygonPoints);
+                            polygon.setStrokeColor(0xFFFF0000); // Rouge
+                            polygon.setStrokeWidth(5);
+                            polygon.setFillColor(0x30FF0000); // Rouge semi-transparent
+                            mapView.getOverlays().add(polygon);
                         }
+                        mapView.invalidate(); // Rafraîchir la carte
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Toast.makeText(this, "Erreur JSON", Toast.LENGTH_SHORT).show();
                     }
                 },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e("API_ERROR", "Erreur de récupération des données: " + error.getMessage());
-                    }
-                });
+                error -> {
+                    Toast.makeText(this, "Erreur de chargement des données", Toast.LENGTH_SHORT).show();
+                    Log.e("API_ERROR", "Erreur lors de la requête API", error);
+                }
+        );
 
         requestQueue.add(jsonObjectRequest);
-    }
-
-    private void drawPolygon(JSONArray coordinates, String name) {
-        List<GeoPoint> geoPoints = new ArrayList<>();
-
-        try {
-            JSONArray polygonArray = coordinates.getJSONArray(0); // Récupérer le premier polygone
-            for (int j = 0; j < polygonArray.length(); j++) {
-                JSONArray point = polygonArray.getJSONArray(j);
-                double lon = point.getDouble(0);
-                double lat = point.getDouble(1);
-                geoPoints.add(new GeoPoint(lat, lon));
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        // Créer et configurer le polygone
-        Polygon polygon = new Polygon();
-        polygon.setPoints(geoPoints);
-        polygon.setFillColor(0x301E90FF); // Bleu semi-transparent
-        polygon.setStrokeColor(0xFF1E90FF); // Bleu foncé
-        polygon.setStrokeWidth(3f);
-        polygon.setTitle(name);
-
-        // Ajouter le polygone à la carte
-        mapView.getOverlayManager().add(polygon);
-        mapView.invalidate();
-    }
-
-    private void drawMultiPolygon(JSONArray coordinates, String name) {
-        for (int i = 0; i < coordinates.length(); i++) {
-            try {
-                // Récupérer chaque polygone dans le multipolygone
-                JSONArray polygonCoordinates = coordinates.getJSONArray(i);
-                List<GeoPoint> geoPoints = new ArrayList<>();
-
-                // Ajouter les points du polygone
-                for (int j = 0; j < polygonCoordinates.length(); j++) {
-                    JSONArray point = polygonCoordinates.getJSONArray(j);
-                    double lon = point.getDouble(0);
-                    double lat = point.getDouble(1);
-                    geoPoints.add(new GeoPoint(lat, lon));
-                }
-
-                // Dessiner le polygone
-                Polygon polygon = new Polygon();
-                polygon.setPoints(geoPoints);
-                polygon.setFillColor(0x301E90FF); // Bleu semi-transparent
-                polygon.setStrokeColor(0xFF1E90FF); // Bleu foncé
-                polygon.setStrokeWidth(3f);
-                polygon.setTitle(name);
-
-                // Ajouter le polygone à la carte
-                mapView.getOverlayManager().add(polygon);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-
-        // Rafraîchir la carte
-        mapView.invalidate();
     }
 }

@@ -1,11 +1,16 @@
 package com.example.myproject_android11.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Group {
     String id;
     String name;
     String creator;
     String date;
     String time;
+
+
     public Group() {
         // Constructeur par défaut requis pour Firestore
     }
@@ -16,6 +21,7 @@ public class Group {
         this.creator = creator;
         this.date = date;
         this.time = time;
+
     }
 
     //set
@@ -39,6 +45,9 @@ public class Group {
         this.time = time;
     }
 
+
+
+
     //Getter
 
     public String getId(){
@@ -59,4 +68,6 @@ public class Group {
     public String getTime() {
         return time;
     }
+
+
 }

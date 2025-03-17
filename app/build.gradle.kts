@@ -57,6 +57,7 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("androidx.biometric:biometric:1.1.0")
+    implementation("androidx.preference:preference-ktx:1.2.1")
 
     implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
     implementation(platform("com.google.firebase:firebase-auth-ktx"))

@@ -8,13 +8,13 @@
     tools:context=".ListGroupActivity">
 
     <Button
-        android:id="@+id/createGroupButton"
+        android:id="@+id/AddUserButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
 
-        android:onClick="onCreateGroupButtonClicked"
-        android:text="Create"
+        android:onClick="onAddUserGroupButtonClicked"
+        android:text="Add"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.454"
@@ -30,14 +30,14 @@
         app:layout_constraintGuide_begin="612dp" />
 
     <ListView
-        android:id="@+id/listViewListGroup"
+        android:id="@+id/listViewListUser"
         android:layout_width="409dp"
         android:layout_height="646dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toTopOf="@+id/createGroupButton"
+        app:layout_constraintBottom_toTopOf="@+id/AddUserButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
