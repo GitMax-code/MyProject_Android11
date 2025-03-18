@@ -66,7 +66,7 @@ public class MapActivity extends AppCompatActivity {
 
         // Chargement des données et ajout des marqueurs
         //loadAndAddMarkers();
-        //drawRedMarker();
+        drawRedMarker();
         //drawPolyline();
         testNameCommune = "rien";
         drawPolygone();
