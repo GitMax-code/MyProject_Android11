@@ -69,7 +69,7 @@ public class MapActivity extends AppCompatActivity {
         drawRedMarker();
         //drawPolyline();
         testNameCommune = "rien";
-        drawPolygone();
+        //drawPolygone();
         fetchData();
         Toast.makeText(MapActivity.this, testNameCommune, Toast.LENGTH_SHORT).show();
 
@@ -131,6 +131,26 @@ public class MapActivity extends AppCompatActivity {
 
     }
 
+    private void drawPolygone(ArrayList<ArrayList<GeoPoint>> allPolygons) {
+        for (ArrayList<GeoPoint> geoPoints : allPolygons) {
+            if (geoPoints.size() < 3) continue; // Vérifier qu'il y a au moins 3 points pour un polygone
+
+            Polygon polygone = new Polygon();
+            polygone.setPoints(geoPoints);
+
+            // Définir le style du polygone
+            polygone.getFillPaint().setColor(Color.argb(100, 0, 0, 255)); // Bleu semi-transparent
+            polygone.getOutlinePaint().setColor(Color.RED); // Bordure rouge
+            polygone.getOutlinePaint().setStrokeWidth(3f);
+
+            // Ajouter le polygone sur la carte
+            mapView.getOverlays().add(polygone);
+        }
+
+        mapView.invalidate(); // Rafraîchir la carte
+    }
+
+
     private void fetchData() {
         new Thread(() -> {
             String apiUrl = "https://opendata.brussels.be/api/explore/v2.1/catalog/datasets/limites-administratives-des-communes-en-region-de-bruxelles-capitale/records?limit=20";
@@ -138,8 +158,10 @@ public class MapActivity extends AppCompatActivity {
             String jsonResponse = getJsonFromUrl(apiUrl);
 
             if (jsonResponse != null) {
-                Log.e(TAG, "jsonResponse not null");
-                parseJson(jsonResponse);
+                // Récupérer la liste des polygones
+                ArrayList<ArrayList<GeoPoint>> polygons = parseJson(jsonResponse);
+
+                drawPolygone(polygons);
             } else {
                 Log.e(TAG, "Failed to fetch data from URL");
             }
@@ -191,23 +213,58 @@ public class MapActivity extends AppCompatActivity {
         return jsonStr;
     }
 
-    private void parseJson(String jsonString) {
+    private ArrayList<ArrayList<GeoPoint>> parseJson(String jsonString) {
+        ArrayList<ArrayList<GeoPoint>> allPolygons = new ArrayList<>();
+
         try {
             JSONObject jsonObject = new JSONObject(jsonString);
             JSONArray resultsArray = jsonObject.getJSONArray("results");
-            //JSONObject resultObject = resultsArray.
-            //String nameFr = resultObject.getString("name_fr");
-            //String nameNl = resultObject.getString("name_nl");
-            testNameCommune = "uccle";
-            handler.post(() -> {
-                Toast.makeText(MapActivity.this, testNameCommune, Toast.LENGTH_SHORT).show();
-            });
+
+            for (int i = 0; i < resultsArray.length(); i++) {
+                JSONObject resultObject = resultsArray.getJSONObject(i);
+                JSONObject geoShape = resultObject.getJSONObject("geo_shape");
+                JSONObject geometry = geoShape.getJSONObject("geometry");
+                JSONArray coordinatesArray = geometry.getJSONArray("coordinates");
+
+                if (geometry.getString("type").equals("MultiPolygon")) {
+                    // Si c'est un MultiPolygon, on boucle sur tous les polygones
+                    for (int j = 0; j < coordinatesArray.length(); j++) {
+                        JSONArray polygonCoordinates = coordinatesArray.getJSONArray(j);
+                        allPolygons.add(convertToGeoPoints(polygonCoordinates));
+                    }
+                } else if (geometry.getString("type").equals("Polygon")) {
+                    // Si c'est un Polygon, on le convertit directement
+                    allPolygons.add(convertToGeoPoints(coordinatesArray));
+                }
+            }
+
         } catch (JSONException e) {
-            Log.e(TAG, "Error parsing JSON", e);
-            handler.post(() -> {
-                Toast.makeText(MapActivity.this, "Error parsing JSON", Toast.LENGTH_SHORT).show();
-            });
+            Log.e(TAG, "Erreur lors du parsing du JSON", e);
         }
+
+        return allPolygons;
     }
+
+    private ArrayList<GeoPoint> convertToGeoPoints(JSONArray polygonCoordinates) throws JSONException {
+        ArrayList<GeoPoint> geoPoints = new ArrayList<>();
+
+        JSONArray outerRing = polygonCoordinates.getJSONArray(0); // L'anneau principal
+        for (int i = 0; i < outerRing.length(); i++) {
+            JSONArray point = outerRing.getJSONArray(i);
+            double lon = point.getDouble(0);
+            double lat = point.getDouble(1);
+            geoPoints.add(new GeoPoint(lat, lon));
+        }
+
+        // Fermer le polygone
+        geoPoints.add(geoPoints.get(0));
+
+        return geoPoints;
+    }
+
+
+
+
+
 
 }

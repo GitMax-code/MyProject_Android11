@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
 
-        android:onClick="onAddUserGroupButtonClicked"
+        android:onClick="onCreateGroupButtonClicked"
         android:text="Add"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -30,7 +30,7 @@
         app:layout_constraintGuide_begin="612dp" />
 
     <ListView
-        android:id="@+id/listViewListUser"
+        android:id="@+id/listViewListUserNotAdded"
         android:layout_width="409dp"
         android:layout_height="646dp"
         android:layout_marginStart="16dp"

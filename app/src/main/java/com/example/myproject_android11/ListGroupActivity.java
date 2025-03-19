@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -67,11 +68,30 @@ public class ListGroupActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Log.d("ListGroupActivity", "onItemClick appelé");
-                String selectedItem = itemList.get(position);
+                String selectedItem = itemList.get(position); // Récupère le nom du groupe
                 Log.d("ListGroupActivity", "Item cliqué: " + selectedItem);
-                Intent intent = new Intent(ListGroupActivity.this, ListUserNotAddedActivity.class);
-                intent.putExtra("id", selectedItem);
-                startActivity(intent);
+
+                // Récupérer l'ID réel du groupe à partir de Firestore
+                db.collection("groups")
+                        .whereEqualTo("name", selectedItem) // Recherche par nom du groupe
+                        .get()
+                        .addOnSuccessListener(queryDocumentSnapshots -> {
+                            if (!queryDocumentSnapshots.isEmpty()) {
+                                // Récupérer le premier document correspondant
+                                QueryDocumentSnapshot document = (QueryDocumentSnapshot) queryDocumentSnapshots.getDocuments().get(0);
+                                String groupId = document.getId(); // Récupérer l'ID du document
+
+                                // Démarrer ListUserAddedActivity avec l'ID du groupe
+                                Intent intent = new Intent(ListGroupActivity.this, ListUserAddedActivity.class);
+                                intent.putExtra("id", groupId); // Passer l'ID réel du groupe
+                                startActivity(intent);
+                            } else {
+                                Toast.makeText(ListGroupActivity.this, "Groupe non trouvé", Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e("ListGroupActivity", "Erreur lors de la récupération de l'ID du groupe", e);
+                        });
             }
         });
     }

@@ -40,27 +40,12 @@ public class ListUserNotAddedActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_list_user_not_added);
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
         // Initialiser Firebase
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Récupérer l'ID du groupe depuis l'Intent envoyé par ListGroupActivity
-        groupId = getIntent().getStringExtra("id");
-
-        if (groupId == null) {
-            Toast.makeText(this, "Erreur : Aucun groupe sélectionné", Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
-
         // Initialisation des vues et de la liste
-        listView = findViewById(R.id.listViewListUser);
+        listView = findViewById(R.id.listViewListUserNotAdded);
         userList = new ArrayList<>();
         userIdList = new ArrayList<>();
         addedUserIds = new HashSet<>();
@@ -78,14 +63,17 @@ public class ListUserNotAddedActivity extends AppCompatActivity {
             return;
         }
 
-        // Charger les utilisateurs qui sont déjà dans le groupe
-        fetchUsersInGroup();
+        // Récupérer l'ID du groupe depuis l'Intent
+        groupId = getIntent().getStringExtra("id");
 
-        // Gérer le clic sur un utilisateur (stocke son ID)
-        listView.setOnItemClickListener((parent, view, position, id) -> {
-            selectedUserId = userIdList.get(position);
-            Toast.makeText(this, "Utilisateur sélectionné: " + userList.get(position), Toast.LENGTH_SHORT).show();
-        });
+        if (groupId == null) {
+            Toast.makeText(this, "Erreur : Aucun groupe sélectionné", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
+        // Charger les utilisateurs déjà dans le groupe
+        fetchUsersInGroup();
     }
 
     private void fetchUsersInGroup() {
@@ -98,15 +86,17 @@ public class ListUserNotAddedActivity extends AppCompatActivity {
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         String userId = document.getString("userId");
                         if (userId != null) {
-                            addedUserIds.add(userId);
+                            addedUserIds.add(userId); // Ajouter l'ID de l'utilisateur à la liste des utilisateurs déjà dans le groupe
                         }
                     }
-                    Log.d("DEBUG", "Utilisateurs déjà ajoutés: " + addedUserIds.toString()); // Vérification
-                    fetchUsers(); // Charger les utilisateurs après filtrage
-                })
-                .addOnFailureListener(e -> Log.e("ListUserActivity", "Erreur récupération users groupe", e));
-    }
 
+                    Log.d("DEBUG", "Utilisateurs déjà dans le groupe : " + addedUserIds.toString());
+                    fetchUsers(); // Charger tous les utilisateurs après avoir récupéré ceux déjà dans le groupe
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("ERROR", "Erreur lors de la récupération des utilisateurs du groupe", e);
+                });
+    }
 
     private void fetchUsers() {
         userList.clear();
@@ -120,46 +110,26 @@ public class ListUserNotAddedActivity extends AppCompatActivity {
                         String userId = document.getId();
 
                         // Vérifier si l'utilisateur n'est pas déjà dans le groupe
-                        if (userName != null) {
-                            if (!addedUserIds.contains(userId)) {
-                                userList.add(userName);
-                                userIdList.add(userId);
-                            } else {
-                                Log.d("DEBUG", "Utilisateur filtré (déjà dans groupe) : " + userName);
-                            }
+                        if (userName != null && !addedUserIds.contains(userId)) {
+                            userList.add(userName);
+                            userIdList.add(userId);
                         }
                     }
-                    Log.d("DEBUG", "Utilisateurs affichés: " + userList.toString());
+
+                    Log.d("DEBUG", "Utilisateurs affichés (non ajoutés au groupe) : " + userList.toString());
                     adapter.notifyDataSetChanged();
                 })
-                .addOnFailureListener(e -> Log.e("ListUserActivity", "Erreur lors de la récupération des utilisateurs", e));
-    }
-
-
-    public void onAddUserGroupButtonClicked(View view) {
-        if (selectedUserId == null) {
-            Toast.makeText(this, "Veuillez sélectionner un utilisateur", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (groupId == null) {
-            Toast.makeText(this, "Veuillez sélectionner un groupe", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        UserGroup userGroup = new UserGroup(null, selectedUserId, groupId);
-
-        db.collection("user_groups")
-                .add(userGroup)
-                .addOnSuccessListener(documentReference -> {
-                    String userGroupId = documentReference.getId();
-                    userGroup.setId(userGroupId); // Ajouter l'ID généré
-                    Toast.makeText(this, "Utilisateur ajouté au groupe!", Toast.LENGTH_SHORT).show();
-                })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Erreur lors de l'ajout", Toast.LENGTH_SHORT).show();
+                    Log.e("ERROR", "Erreur lors de la récupération des utilisateurs", e);
                 });
     }
+
+    public void onAddUserGroupButtonClicked(View view) {
+        Intent intent = new Intent(ListUserNotAddedActivity.this, ListUserNotAddedActivity.class);
+        intent.putExtra("id", groupId); // Passer l'ID du groupe à ListUserNotAddedActivity
+        startActivity(intent);
+    }
+
 
 
 

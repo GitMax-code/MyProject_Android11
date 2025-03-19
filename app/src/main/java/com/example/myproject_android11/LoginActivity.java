@@ -100,9 +100,9 @@ public class LoginActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (!task.isSuccessful()) {
                             // there was an error
-                            Toast.makeText(LoginActivity.this, "Authentication failed." + task.getException(),
-                                    Toast.LENGTH_LONG).show();
-                            Log.e("MyTag", task.getException().toString());
+                            //Toast.makeText(LoginActivity.this, "["+email+"] ["+password+"]", Toast.LENGTH_LONG).show();
+                            Toast.makeText(LoginActivity.this, ""+task.getException(), Toast.LENGTH_LONG).show();
+                            Log.e("MyTag", "---------->"+task.getException().toString());
 
                         } else {
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
