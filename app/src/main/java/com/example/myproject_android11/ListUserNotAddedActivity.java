@@ -74,6 +74,13 @@ public class ListUserNotAddedActivity extends AppCompatActivity {
 
         // Charger les utilisateurs déjà dans le groupe
         fetchUsersInGroup();
+
+        // Gérer le clic sur un utilisateur (stocke son ID)
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            selectedUserId = userIdList.get(position);
+            Toast.makeText(this, "ID de l'utilisateur sélectionné : " + selectedUserId,  Toast.LENGTH_LONG).show();
+        });
+
     }
 
     private void fetchUsersInGroup() {
@@ -125,9 +132,32 @@ public class ListUserNotAddedActivity extends AppCompatActivity {
     }
 
     public void onAddUserGroupButtonClicked(View view) {
-        Intent intent = new Intent(ListUserNotAddedActivity.this, ListUserNotAddedActivity.class);
-        intent.putExtra("id", groupId); // Passer l'ID du groupe à ListUserNotAddedActivity
+        Intent intent = new Intent(ListUserNotAddedActivity.this, MainActivity.class);
+        if (selectedUserId != null) {
+            Toast.makeText(this, "Utilisateur ajouté : " + selectedUserId, Toast.LENGTH_LONG).show();
+            addUserToGroup(selectedUserId);
+        }
+        else{
+            Toast.makeText(this, "Echec : ", Toast.LENGTH_LONG).show();
+        }
         startActivity(intent);
+    }
+
+    private void addUserToGroup(String userId) {
+        // 🔹 Créer un UserGroup pour le créateur
+        UserGroup userGroup = new UserGroup(null, userId, groupId);
+
+        db.collection("user_groups")
+                .add(userGroup)
+                .addOnSuccessListener(documentReference -> {
+                    String userGroupId = documentReference.getId();
+                    documentReference.update("id", userGroupId);
+                    Log.d("CreateGroupActivity", "Créateur ajouté au groupe avec userGroupId : " + userGroupId);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("CreateGroupActivity", "Erreur lors de l'ajout du créateur au groupe", e);
+                });
+
     }
 
 

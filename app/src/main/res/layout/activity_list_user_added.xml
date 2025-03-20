@@ -5,22 +5,22 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ListGroupActivity">
+    tools:context=".ListUserAddedActivity">
 
     <Button
         android:id="@+id/AddUserButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginStart="105dp"
 
+        android:layout_marginTop="8dp"
         android:onClick="onAddUserGroupButtonClicked"
         android:text="Add"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.454"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/chat"
         app:layout_constraintTop_toTopOf="@+id/guideline2"
-        app:layout_constraintVertical_bias="0.746"
+        app:layout_constraintVertical_bias="0.73"
         tools:ignore="OnClick" />
 
     <androidx.constraintlayout.widget.Guideline
@@ -40,7 +40,24 @@
         android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toTopOf="@+id/AddUserButton"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.466"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <Button
+        android:id="@+id/chat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="9dp"
+        android:layout_marginEnd="17dp"
+        android:layout_marginBottom="17dp"
+        android:onClick="onChatButtonClicked"
+        android:text="Chat"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/AddUserButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/listViewListUserAdded" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

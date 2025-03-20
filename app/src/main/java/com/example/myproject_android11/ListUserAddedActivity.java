@@ -147,6 +147,12 @@ public class ListUserAddedActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    public void onChatButtonClicked(View view) {
+        Intent intent = new Intent(ListUserAddedActivity.this, ChatActivity.class);
+        intent.putExtra("id", groupId); // Passer l'ID du groupe à ChatActivity
+        startActivity(intent);
+    }
+
 
 
 

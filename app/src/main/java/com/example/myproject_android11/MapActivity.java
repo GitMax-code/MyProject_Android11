@@ -128,7 +128,6 @@ public class MapActivity extends AppCompatActivity {
         polygone.setPoints(geoPoints);
         polygone.setTitle("A polygon");
         mapView.getOverlays().add(polygone);
-
     }
 
     private void drawPolygone(ArrayList<ArrayList<GeoPoint>> allPolygons) {
