@@ -5,17 +5,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,16 +32,17 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 public class MapActivity extends AppCompatActivity {
     private MapView mapView;
-    private RequestQueue requestQueue;
+    private FirebaseFirestore db;
 
     private String testNameCommune;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
-    private static final String TAG = "DataListActivity";
+    private static final String TAG = "MapActivity";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,18 +59,11 @@ public class MapActivity extends AppCompatActivity {
         mapView.getController().setZoom(12.0);
         mapView.getController().setCenter(new GeoPoint(50.8503, 4.3517)); // Centre sur Bruxelles
 
-        // Initialisation de Volley
-        //requestQueue = Volley.newRequestQueue(this);
+        // Initialisation de Firestore
+        db = FirebaseFirestore.getInstance();
 
-        // Chargement des données et ajout des marqueurs
-        //loadAndAddMarkers();
-        drawRedMarker();
-        //drawPolyline();
-        testNameCommune = "rien";
-        //drawPolygone();
+        // Chargement des données
         fetchData();
-        Toast.makeText(MapActivity.this, testNameCommune, Toast.LENGTH_SHORT).show();
-
     }
 
     private void drawRedMarker() {
@@ -95,7 +86,6 @@ public class MapActivity extends AppCompatActivity {
         Polyline polyline = new Polyline();
         polyline.setPoints(geoPoints);
         polyline.setOnClickListener(new Polyline.OnClickListener() {
-
             @Override
             public boolean onClick(Polyline polyline, MapView mapView, GeoPoint eventPos) {
                 Toast.makeText(MapActivity.this, "Polyline clicked", Toast.LENGTH_SHORT).show();
@@ -105,66 +95,98 @@ public class MapActivity extends AppCompatActivity {
         mapView.getOverlays().add(polyline);
     }
 
-
-
-    private void drawPolygone(){
-
-        ArrayList<GeoPoint> geoPoints = new ArrayList<>();
-        GeoPoint geoPoint1 = new GeoPoint(50.8503, 4.3517);
-        GeoPoint geoPoint2 = new GeoPoint(50.8503, 4.3527);
-        GeoPoint geoPoint3 = new GeoPoint(50.8493, 4.3517);
-        geoPoints.add(geoPoint1);
-        geoPoints.add(geoPoint2);
-        geoPoints.add(geoPoint3);
-        geoPoints.add(geoPoints.get(0));
-
-        Polygon polygone = new Polygon();
-        Toast.makeText(this, "name" + polygone.getTitle(), Toast.LENGTH_SHORT).show();
-        //FillPaint = contenu du polygone
-        polygone.getFillPaint().setColor(Color.parseColor("#0000FF"));
-        //OutlinePaint = bord du polygone
-        polygone.getOutlinePaint().setColor(Color.parseColor("#FF0000"));
-        polygone.getOutlinePaint().setStrokeWidth(0f);
-        polygone.setPoints(geoPoints);
-        polygone.setTitle("A polygon");
-        mapView.getOverlays().add(polygone);
-    }
-
-    private void drawPolygone(ArrayList<ArrayList<GeoPoint>> allPolygons) {
+    private void drawPolygone(ArrayList<ArrayList<GeoPoint>> allPolygons, HashMap<String, Float> absenceRatioByCommune) {
         for (ArrayList<GeoPoint> geoPoints : allPolygons) {
             if (geoPoints.size() < 3) continue; // Vérifier qu'il y a au moins 3 points pour un polygone
 
-            Polygon polygone = new Polygon();
-            polygone.setPoints(geoPoints);
+            Polygon polygon = new Polygon();
+            polygon.setPoints(geoPoints);
+
+            // Déterminer la couleur en fonction du ratio d'absences
+            String communeName = getCommuneNameFromPolygon(geoPoints); // Méthode à implémenter
+            float absenceRatio = absenceRatioByCommune.getOrDefault(communeName, 0f);
+
+            int color = getColorForAbsenceRatio(absenceRatio); // Méthode à implémenter
+
+            // Log pour vérifier la couleur appliquée
+            Log.d(TAG, "Commune: " + communeName + ", Ratio: " + absenceRatio + ", Couleur appliquée: " + Integer.toHexString(color));
 
             // Définir le style du polygone
-            polygone.getFillPaint().setColor(Color.argb(100, 0, 0, 255)); // Bleu semi-transparent
-            polygone.getOutlinePaint().setColor(Color.RED); // Bordure rouge
-            polygone.getOutlinePaint().setStrokeWidth(3f);
+            polygon.getFillPaint().setColor(color); // Couleur en fonction du ratio d'absences
+            polygon.getOutlinePaint().setColor(Color.BLACK); // Bordure noire
+            polygon.getOutlinePaint().setStrokeWidth(2f);
 
             // Ajouter le polygone sur la carte
-            mapView.getOverlays().add(polygone);
+            mapView.getOverlays().add(polygon);
         }
 
         mapView.invalidate(); // Rafraîchir la carte
     }
 
-
     private void fetchData() {
         new Thread(() -> {
             String apiUrl = "https://opendata.brussels.be/api/explore/v2.1/catalog/datasets/limites-administratives-des-communes-en-region-de-bruxelles-capitale/records?limit=20";
-            //String apiUrl = "https://opendata.brussels.be/api/explore/v2.1/catalog/datasets/limites-administratives-des-communes-en-region-de-bruxelles-capitale/records";
             String jsonResponse = getJsonFromUrl(apiUrl);
 
             if (jsonResponse != null) {
                 // Récupérer la liste des polygones
                 ArrayList<ArrayList<GeoPoint>> polygons = parseJson(jsonResponse);
 
-                drawPolygone(polygons);
+                // Récupérer les données de présence et mettre à jour les couleurs
+                fetchPresenceData(polygons);
             } else {
                 Log.e(TAG, "Failed to fetch data from URL");
             }
         }).start();
+    }
+
+    private void fetchPresenceData(ArrayList<ArrayList<GeoPoint>> polygons) {
+        db.collection("presence")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    HashMap<String, Integer> presenceCountByCommune = new HashMap<>();
+                    HashMap<String, Integer> absenceCountByCommune = new HashMap<>();
+
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        String userId = document.getString("userId");
+                        boolean isPresent = document.getBoolean("isPresent");
+
+                        // Récupérer la commune de l'utilisateur
+                        db.collection("users")
+                                .document(userId)
+                                .get()
+                                .addOnSuccessListener(userDocument -> {
+                                    String commune = userDocument.getString("commune");
+                                    if (commune != null) {
+                                        if (isPresent) {
+                                            presenceCountByCommune.put(commune, presenceCountByCommune.getOrDefault(commune, 0) + 1);
+                                        } else {
+                                            absenceCountByCommune.put(commune, absenceCountByCommune.getOrDefault(commune, 0) + 1);
+                                        }
+                                    }
+
+                                    // Log pour vérifier les données
+                                    Log.d(TAG, "Commune: " + commune + ", Présences: " + presenceCountByCommune.getOrDefault(commune, 0) + ", Absences: " + absenceCountByCommune.getOrDefault(commune, 0));
+                                });
+                    }
+
+                    // Calculer les ratios d'absences par commune
+                    HashMap<String, Float> absenceRatioByCommune = new HashMap<>();
+                    for (String commune : presenceCountByCommune.keySet()) {
+                        int total = presenceCountByCommune.get(commune) + absenceCountByCommune.getOrDefault(commune, 0);
+                        float absenceRatio = (float) absenceCountByCommune.getOrDefault(commune, 0) / total;
+                        absenceRatioByCommune.put(commune, absenceRatio);
+
+                        // Log pour vérifier les ratios
+                        Log.d(TAG, "Commune: " + commune + ", Ratio d'absences: " + absenceRatio);
+                    }
+
+                    // Mettre à jour les couleurs des polygones
+                    drawPolygone(polygons, absenceRatioByCommune);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Erreur lors de la récupération des données de présence", e);
+                });
     }
 
     private String getJsonFromUrl(String urlString) {
@@ -261,9 +283,19 @@ public class MapActivity extends AppCompatActivity {
         return geoPoints;
     }
 
+    private String getCommuneNameFromPolygon(ArrayList<GeoPoint> geoPoints) {
+        // Implémentez cette méthode pour retourner le nom de la commune
+        // en fonction des coordonnées du polygone.
+        // Par exemple, vous pouvez utiliser une API ou une base de données locale.
+        return "Uccle"; // Exemple (à remplacer par une logique réelle)
+    }
 
-
-
-
-
+    private int getColorForAbsenceRatio(float absenceRatio) {
+        // Si le ratio d'absences est supérieur à 0.5, la couleur est rouge
+        if (absenceRatio > 0.5f) {
+            return Color.argb(100, 255, 0, 0); // Rouge
+        } else {
+            return Color.argb(100, 0, 255, 0); // Vert
+        }
+    }
 }

@@ -22,14 +22,15 @@
         android:usesCleartextTraffic="false"
         tools:targetApi="31">
         <activity
+            android:name=".ListOtherGroupActivity"
+            android:exported="false" />
+        <activity
             android:name=".ChatActivity"
             android:exported="false" />
         <activity
             android:name=".ListUserAddedActivity"
             android:exported="false" />
-        <activity
-            android:name=".ListUserNotAddedActivity"
-            android:exported="false" />
+
         <activity
             android:name=".ListGroupActivity"
             android:exported="false" />

@@ -67,4 +67,6 @@ dependencies {
     // osmdroid
     implementation("org.osmdroid:osmdroid-android:6.1.10")
 
+
+
 }

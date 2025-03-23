@@ -19,6 +19,8 @@
         app:layout_constraintTop_toTopOf="parent"/>
 
     <!-- Zone de saisie pour écrire le message -->
+
+
     <EditText
         android:id="@+id/editTextMessage"
         android:layout_width="0dp"
@@ -26,11 +28,11 @@
         android:hint="Entrez votre message"
         android:inputType="text"
         android:minHeight="48dp"
-    app:layout_constraintBottom_toTopOf="@+id/sendButton"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent"/>
-
+        app:layout_constraintBottom_toTopOf="@+id/sendButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/sendButton"

@@ -20,6 +20,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ListGroupActivity extends AppCompatActivity {
 
@@ -105,39 +106,66 @@ public class ListGroupActivity extends AppCompatActivity {
             return;
         }
 
-        db.collection("groups")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    Log.d("ListGroupActivity", "Données récupérées depuis Firestore");
-                    if (queryDocumentSnapshots.isEmpty()) {
-                        Log.d("ListGroupActivity", "Aucun groupe trouvé");
-                    } else {
-                        for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                            String groupName = document.getString("name");
-                            String creatorId = document.getString("creator");
+        Log.d("ListGroupActivity", "ID de l'utilisateur connecté: " + userId);
 
-                            if (groupName != null && creatorId != null && creatorId.equals(userId)) {
-                                Log.d("ListGroupActivity", "Ajout du groupe: " + groupName);
-                                itemList.add(groupName);
-                            } else {
-                                Log.d("ListGroupActivity", "Groupe ignoré: " + groupName + " | creatorId: " + creatorId);
-                            }
+        // Étape 1 : Récupérer les groupes auxquels l'utilisateur est inscrit
+        db.collection("user_groups")
+                .whereEqualTo("userId", userId)
+                .get()
+                .addOnSuccessListener(userGroupsSnapshot -> {
+                    Log.d("ListGroupActivity", "Nombre de documents trouvés dans user_group: " + userGroupsSnapshot.size());
+                    if (userGroupsSnapshot.isEmpty()) {
+                        Log.d("ListGroupActivity", "Aucun document trouvé pour cet utilisateur dans user_group");
+                        Toast.makeText(this, "L'utilisateur n'est inscrit à aucun groupe", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    List<String> joinedGroupIds = new ArrayList<>();
+                    for (QueryDocumentSnapshot document : userGroupsSnapshot) {
+                        String groupId = document.getString("groupId");
+                        Log.d("ListGroupActivity", "Document trouvé: " + document.getId() + ", groupId: " + groupId);
+                        if (groupId != null) {
+                            joinedGroupIds.add(groupId);
                         }
                     }
-                    adapter.notifyDataSetChanged();
-                    Log.d("ListGroupActivity", "Nombre total de groupes affichés: " + itemList.size());
+
+                    // Étape 2 : Récupérer les détails des groupes
+                    db.collection("groups")
+                            .whereIn("id", joinedGroupIds)
+                            .get()
+                            .addOnSuccessListener(groupsSnapshot -> {
+                                Log.d("ListGroupActivity", "Nombre de groupes trouvés: " + groupsSnapshot.size());
+                                if (groupsSnapshot.isEmpty()) {
+                                    Log.d("ListGroupActivity", "Aucun groupe trouvé pour les IDs récupérés");
+                                    Toast.makeText(this, "Aucun groupe trouvé", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+
+                                for (QueryDocumentSnapshot document : groupsSnapshot) {
+                                    String groupName = document.getString("name");
+                                    Log.d("ListGroupActivity", "Groupe trouvé: " + groupName);
+                                    if (groupName != null) {
+                                        itemList.add(groupName);
+                                    }
+                                }
+                                adapter.notifyDataSetChanged();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e("ListGroupActivity", "Erreur lors de la récupération des groupes", e);
+                            });
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("ListGroupActivity", "Erreur lors de la récupération des groupes", e);
+                    Log.e("ListGroupActivity", "Erreur lors de la récupération des user_group", e);
                 });
-
-        listView.postDelayed(() -> {
-            Log.d("ListGroupActivity", "Final itemList content: " + itemList);
-        }, 2000);
     }
 
     public void onCreateGroupButtonClicked(View v) {
         Intent intent = new Intent(ListGroupActivity.this, CreateGroupActivity.class);
+        startActivity(intent);
+    }
+
+    public void onJoinGroupButtonClicked(View v) {
+        Intent intent = new Intent(ListGroupActivity.this, ListOtherGroupActivity.class);
         startActivity(intent);
     }
 }

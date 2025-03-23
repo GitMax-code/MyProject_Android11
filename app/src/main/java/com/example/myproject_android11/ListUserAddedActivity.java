@@ -4,8 +4,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -14,14 +18,13 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.example.myproject_android11.model.UserGroup;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,11 +33,10 @@ public class ListUserAddedActivity extends AppCompatActivity {
     private ArrayList<String> userList;
     private ArrayList<String> userIdList;
     private ArrayAdapter<String> adapter;
-    private HashSet<String> addedUserIds;
-    private String selectedUserId = null; // Stocke l'ID de l'utilisateur sélectionné
+    private HashMap<String, Boolean> presenceMap; // Pour stocker la présence de chaque utilisateur
+    private Button saveButton; // Bouton pour enregistrer la présence
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-
     private String groupId; // L'ID du groupe récupéré depuis la page précédente
 
     @Override
@@ -52,16 +54,38 @@ public class ListUserAddedActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-
-
         // Initialisation des vues et de la liste
         listView = findViewById(R.id.listViewListUserAdded);
         userList = new ArrayList<>();
         userIdList = new ArrayList<>();
-        addedUserIds = new HashSet<>();
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, userList);
+        presenceMap = new HashMap<>(); // Initialiser la map de présence
+
+        // Utiliser un adaptateur personnalisé pour afficher les CheckBox
+        adapter = new ArrayAdapter<String>(this, R.layout.user_item, R.id.userName, userList) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View view = super.getView(position, convertView, parent);
+                CheckBox checkBox = view.findViewById(R.id.checkBox);
+                String userId = userIdList.get(position);
+
+                // Définir l'état de la CheckBox
+                checkBox.setChecked(presenceMap.get(userId));
+
+                // Gérer le clic sur la CheckBox
+                checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    presenceMap.put(userId, isChecked); // Mettre à jour la présence dans la map
+                });
+
+                return view;
+            }
+        };
         listView.setAdapter(adapter);
+
+        // Initialiser le bouton "Enregistrer"
+        saveButton = findViewById(R.id.saveButton);
+        saveButton.setOnClickListener(v -> savePresenceStatus());
     }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -82,16 +106,7 @@ public class ListUserAddedActivity extends AppCompatActivity {
 
         // Charger les utilisateurs qui sont déjà dans le groupe
         fetchUsersFromUserGroups(groupId);
-
-        // Gérer le clic sur un utilisateur (stocke son ID)
-        listView.setOnItemClickListener((parent, view, position, id) -> {
-
-        });
     }
-
-
-
-
 
     private void fetchUsersFromUserGroups(String groupId) {
         db.collection("user_groups")
@@ -107,7 +122,7 @@ public class ListUserAddedActivity extends AppCompatActivity {
                         }
                     }
 
-                    Log.d("DEBUG", "UserIds trouvés : " + userIds.toString()); // Vérifiez cette ligne
+                    Log.d("DEBUG", "UserIds trouvés : " + userIds.toString());
                     fetchUsersByIds(userIds);
                 })
                 .addOnFailureListener(e -> {
@@ -126,25 +141,51 @@ public class ListUserAddedActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     userList.clear();
+                    userIdList.clear();
 
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         String userName = document.getString("name");
+                        String userId = document.getId();
                         if (userName != null) {
                             userList.add(userName);
+                            userIdList.add(userId);
+                            presenceMap.put(userId, false); // Initialiser la présence à false par défaut
                         }
                     }
 
-                    Log.d("DEBUG", "Utilisateurs ajoutés à la ListView : " + userList.toString()); // Vérifiez cette ligne
+                    Log.d("DEBUG", "Utilisateurs ajoutés à la ListView : " + userList.toString());
                     adapter.notifyDataSetChanged();
                 })
                 .addOnFailureListener(e -> {
                     Log.e("ERROR", "Erreur lors de la récupération des utilisateurs", e);
                 });
     }
-    public void onAddUserGroupButtonClicked(View view) {
-        Intent intent = new Intent(ListUserAddedActivity.this, ListUserNotAddedActivity.class);
-        intent.putExtra("id", groupId); // Passer l'ID du groupe à ListUserNotAddedActivity
-        startActivity(intent);
+
+    private void savePresenceStatus() {
+        for (int i = 0; i < userIdList.size(); i++) {
+            String userId = userIdList.get(i);
+            boolean isPresent = presenceMap.get(userId); // Récupérer la présence depuis la map
+
+            // Mettre à jour la présence dans Firestore
+            updatePresenceStatus(userId, isPresent);
+        }
+
+        Toast.makeText(this, "Présence enregistrée", Toast.LENGTH_SHORT).show();
+    }
+
+    private void updatePresenceStatus(String userId, boolean isPresent) {
+        // Créer un objet pour stocker la présence
+        Map<String, Object> presenceData = new HashMap<>();
+        presenceData.put("userId", userId);
+        presenceData.put("groupId", groupId);
+        presenceData.put("isPresent", isPresent);
+
+        // Mettre à jour ou créer un document dans la collection "presence"
+        db.collection("presence")
+                .document(userId + "_" + groupId) // ID unique pour chaque utilisateur-groupe
+                .set(presenceData)
+                .addOnSuccessListener(aVoid -> Log.d("DEBUG", "Présence mise à jour pour l'utilisateur: " + userId))
+                .addOnFailureListener(e -> Log.e("ERROR", "Erreur lors de la mise à jour de la présence", e));
     }
 
     public void onChatButtonClicked(View view) {
@@ -152,8 +193,4 @@ public class ListUserAddedActivity extends AppCompatActivity {
         intent.putExtra("id", groupId); // Passer l'ID du groupe à ChatActivity
         startActivity(intent);
     }
-
-
-
-
 }
