@@ -23,6 +23,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.SetOptions;
 
+import com.example.myproject_android11.model.Message;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +33,7 @@ public class ChatActivity extends AppCompatActivity {
     private RecyclerView recyclerViewMessages;
     private EditText editTextMessage;
     private Button sendButton;
-    private ArrayList<String> messagesList; // Liste des messages
+    private ArrayList<Message> messagesList; // Liste des messages
     private FirebaseFirestore db;
     private String groupId; // Identifiant du groupe (passé depuis l'intention)
     private MessagesAdapter messagesAdapter;
@@ -59,15 +61,17 @@ public class ChatActivity extends AppCompatActivity {
         // Récupérer l'ID du groupe passé par l'intention
         groupId = getIntent().getStringExtra("id");
 
-        // Récupérer les messages de Firestore et les afficher
-        fetchMessagesFromFirestore();
+
 
         // Gestion de l'envoi des messages
         sendButton.setOnClickListener(v -> {
-            String message = editTextMessage.getText().toString();
-            if (!message.isEmpty()) {
+            String messageText = editTextMessage.getText().toString();
+            if (!messageText.isEmpty()) {
                 // Ajouter le message à Firestore
-                sendMessageToFirestore(message);
+                sendMessageToFirestore(messageText);
+
+                // Créer un objet Message localement
+                Message message = new Message(messageText, FirebaseAuth.getInstance().getCurrentUser().getUid(), groupId, System.currentTimeMillis());
 
                 // Ajouter le message à la liste localement pour afficher dans RecyclerView
                 messagesList.add(message);
@@ -79,33 +83,39 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
+    public void onStart(){
+        super.onStart();
+        // Récupérer les messages de Firestore et les afficher
+        fetchMessagesFromFirestore();
+    }
+
     // Méthode pour récupérer les messages de Firestore
     private void fetchMessagesFromFirestore() {
-        // Filtrer les messages en fonction de groupId
-        db.collection("Message")
+        db.collection("messages")
                 .whereEqualTo("groupId", groupId)
                 .orderBy("timestamp") // Trier les messages par timestamp
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    // Vider la liste actuelle de messages avant d'ajouter les nouveaux
-                    messagesList.clear();
-
-                    // Parcourir les documents retournés et ajouter les messages à la liste
-                    for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
-                        String message = documentSnapshot.getString("message");
-                        if (message != null) {
-                            messagesList.add(message);
-                        }
+                .addSnapshotListener((queryDocumentSnapshots, e) -> {
+                    if (e != null) {
+                        e.printStackTrace();
+                        return;
                     }
 
-                    // Notifier l'adapter que les données ont été mises à jour
-                    messagesAdapter.notifyDataSetChanged();
-                })
-                .addOnFailureListener(e -> {
-                    // Gérer les erreurs lors de la récupération des messages
-                    e.printStackTrace();
+                    if (queryDocumentSnapshots != null) { // Correction ici
+                        messagesList.clear();
+
+                        for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                            Message message = documentSnapshot.toObject(Message.class);
+                            if (message != null) {
+                                messagesList.add(message);
+                            }
+                        }
+
+                        // Notifier l'adapter
+                        messagesAdapter.notifyDataSetChanged();
+                    }
                 });
     }
+
 
     // Méthode pour envoyer un message à Firestore
     private void sendMessageToFirestore(String message) {
@@ -117,7 +127,7 @@ public class ChatActivity extends AppCompatActivity {
         messageData.put("timestamp", System.currentTimeMillis()); // Ajouter un timestamp
 
         // Ajouter le message à la collection "Message" dans Firestore
-        db.collection("message")
+        db.collection("messages")
                 .add(messageData)
                 .addOnSuccessListener(documentReference -> {
                     // Récupérer l'ID du document (ID du message)
@@ -126,7 +136,7 @@ public class ChatActivity extends AppCompatActivity {
                     messageData.put("id", messageId);
 
                     // Mettre à jour le message avec l'ID dans Firestore
-                    db.collection("message")
+                    db.collection("messages")
                             .document(messageId)
                             .set(messageData, SetOptions.merge())
                             .addOnSuccessListener(aVoid -> {
@@ -149,23 +159,24 @@ public class ChatActivity extends AppCompatActivity {
     // Adapter simple pour RecyclerView
     private static class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MessageViewHolder> {
 
-        private final ArrayList<String> messages;
+        private final ArrayList<Message> messages;
 
-        public MessagesAdapter(ArrayList<String> messages) {
+        public MessagesAdapter(ArrayList<Message> messages) {
             this.messages = messages;
         }
 
         @Override
         public MessageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext())
-                    .inflate(android.R.layout.simple_list_item_1, parent, false);
+                    .inflate(R.layout.message_item, parent, false);
             return new MessageViewHolder(view);
         }
 
         @Override
         public void onBindViewHolder(MessageViewHolder holder, int position) {
-            String message = messages.get(position);
-            holder.textView.setText(message);
+            Message message = messages.get(position);
+            holder.textMessage.setText(message.getMessage());
+            holder.textUser.setText("User: " + message.getUserId()); // Affiche l'ID de l'utilisateur
         }
 
         @Override
@@ -173,16 +184,17 @@ public class ChatActivity extends AppCompatActivity {
             return messages.size();
         }
 
-        // ViewHolder pour chaque message
         static class MessageViewHolder extends RecyclerView.ViewHolder {
-
-            TextView textView;
+            TextView textMessage, textUser;
 
             public MessageViewHolder(View itemView) {
                 super(itemView);
-                textView = itemView.findViewById(android.R.id.text1);
+                textMessage = itemView.findViewById(R.id.textMessage);
+                textUser = itemView.findViewById(R.id.textUser);
             }
         }
     }
+
+
 }
 
