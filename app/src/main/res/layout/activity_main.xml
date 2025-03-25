@@ -45,7 +45,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:onClick="onTestButtonClicked"
-        android:text="@string/TestButton"
+        android:text="logout"
         app:layout_constraintEnd_toEndOf="@+id/mainMiddleTextView"
         app:layout_constraintStart_toStartOf="@+id/mainMiddleTextView"
         app:layout_constraintTop_toBottomOf="@+id/mainMiddleTextView" />

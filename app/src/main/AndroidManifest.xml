@@ -30,7 +30,6 @@
         <activity
             android:name=".ListUserAddedActivity"
             android:exported="false" />
-
         <activity
             android:name=".ListGroupActivity"
             android:exported="false" />
@@ -44,9 +43,6 @@
             android:name=".MapActivity"
             android:exported="false" />
         <activity
-            android:name=".LogoutActivity"
-            android:exported="false" />
-        <activity
             android:name=".LoginActivity"
             android:exported="false" />
         <activity
@@ -56,7 +52,7 @@
             android:name=".RegisterActivity"
             android:exported="false" />
         <activity
-            android:name=".TestActivity"
+            android:name=".LogoutActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
