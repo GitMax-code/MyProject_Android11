@@ -160,6 +160,7 @@ public class ChatActivity extends AppCompatActivity {
     private static class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MessageViewHolder> {
 
         private final ArrayList<Message> messages;
+        private FirebaseFirestore db = FirebaseFirestore.getInstance(); // 🔹 Firestore pour récupérer les noms
 
         public MessagesAdapter(ArrayList<Message> messages) {
             this.messages = messages;
@@ -176,7 +177,19 @@ public class ChatActivity extends AppCompatActivity {
         public void onBindViewHolder(MessageViewHolder holder, int position) {
             Message message = messages.get(position);
             holder.textMessage.setText(message.getMessage());
-            holder.textUser.setText("User: " + message.getUserId()); // Affiche l'ID de l'utilisateur
+
+            // 🔹 Récupérer le nom de l'utilisateur depuis Firestore
+            db.collection("users").document(message.getUserId())
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            String userName = documentSnapshot.getString("name"); // Assurez-vous que le champ "displayName" existe dans Firestore
+                            holder.textUser.setText(userName != null ? userName : "Utilisateur inconnu");
+                        } else {
+                            holder.textUser.setText("Utilisateur inconnu");
+                        }
+                    })
+                    .addOnFailureListener(e -> holder.textUser.setText("Erreur utilisateur"));
         }
 
         @Override
@@ -194,6 +207,7 @@ public class ChatActivity extends AppCompatActivity {
             }
         }
     }
+
 
 
 }

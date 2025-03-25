@@ -1,60 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#FAFAFA"
+    android:padding="24dp"
     tools:context=".ListGroupActivity">
 
-    <Button
-        android:id="@+id/createGroupButton"
-        android:layout_width="wrap_content"
+    <!-- Titre -->
+    <TextView
+        android:id="@+id/titleTextView"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-
-        android:onClick="onCreateGroupButtonClicked"
-        android:text="Create"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="My Groups"
+        android:textSize="24sp"
+        android:textColor="#6200EE"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.454"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline2"
-        app:layout_constraintVertical_bias="0.746" />
+        app:layout_constraintTop_toTopOf="parent"/>
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_begin="612dp" />
-
+    <!-- ListView original (conservé pour compatibilité) -->
     <ListView
         android:id="@+id/listViewListGroup"
-        android:layout_width="409dp"
-        android:layout_height="646dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
         android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toTopOf="@+id/createGroupButton"
+        android:divider="#E0E0E0"
+        android:dividerHeight="1dp"
+        app:layout_constraintBottom_toTopOf="@+id/joinGroupButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/titleTextView"/>
 
-    <Button
-        android:id="@+id/joinAGroupButton"
-        android:layout_width="wrap_content"
+    <!-- Bouton Rejoindre un groupe -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/joinGroupButton"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="15dp"
-        android:layout_marginEnd="26dp"
-        android:layout_marginBottom="11dp"
+        android:layout_marginEnd="8dp"
+        android:text="Join Group"
+        android:textColor="#6200EE"
         android:onClick="onJoinGroupButtonClicked"
-        android:text="Join a group"
+        app:icon="@android:drawable/ic_menu_add"
+        app:iconTint="#6200EE"
+        app:strokeColor="#6200EE"
+        app:cornerRadius="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/createGroupButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/listViewListGroup" />
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <!-- Bouton Créer un groupe -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/createGroupButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="Create"
+        android:textColor="#FFFFFF"
+        android:onClick="onCreateGroupButtonClicked"
+        app:backgroundTint="#6200EE"
+        app:cornerRadius="8dp"
+        app:icon="@android:drawable/ic_menu_edit"
+        app:iconTint="#FFFFFF"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/joinGroupButton"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
