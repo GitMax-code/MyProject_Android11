@@ -1,64 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#FAFAFA"
+    android:padding="24dp"
     tools:context=".CreateGroupActivity">
 
-    <EditText
-        android:id="@+id/NameGroup"
-        android:layout_width="243dp"
-        android:layout_height="69dp"
-        android:layout_marginStart="35dp"
-        android:layout_marginTop="44dp"
-        android:layout_marginEnd="166dp"
-        android:ems="10"
-        android:hint="Name"
-        android:inputType="text"
+    <!-- Titre de la page -->
+    <TextView
+        android:id="@+id/titleTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Create New Group"
+        android:textSize="24sp"
+        android:textColor="#6200EE"
+        android:textStyle="bold"
+        android:textAlignment="center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"/>
 
+    <!-- Champ pour le nom du groupe -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/nameGroupContainer"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:hint="Group Name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/titleTextView">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/NameGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textCapWords"
+            android:minHeight="48dp"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Calendrier -->
     <CalendarView
         android:id="@+id/calendarView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="31dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/NameGroup" />
-
-    <EditText
-        android:id="@+id/TimeGroupe"
-        android:layout_width="240dp"
-        android:layout_height="59dp"
-        android:layout_marginStart="44dp"
-        android:layout_marginTop="28dp"
-        android:layout_marginEnd="157dp"
-        android:ems="10"
-        android:hint="Time"
-        android:inputType="time"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.1"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/calendarView" />
-
-    <Button
-        android:id="@+id/createGroupButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_width="0dp"
+        android:layout_height="300dp"
         android:layout_marginTop="24dp"
-        android:layout_marginEnd="8dp"
-        android:onClick="createGroupButton"
-        android:text="Create a group"
+        android:background="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.442"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/TimeGroupe" />
+        app:layout_constraintTop_toBottomOf="@+id/nameGroupContainer"/>
+
+    <!-- Champ pour l'heure -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/timeGroupContainer"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:hint="Time"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/calendarView">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/TimeGroupe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="time"
+            android:minHeight="48dp"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Bouton de création -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/createGroupButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="Create Group"
+        android:textColor="#FFFFFF"
+        android:onClick="createGroupButton"
+        app:backgroundTint="#6200EE"
+        app:cornerRadius="8dp"
+        app:icon="@android:drawable/ic_menu_save"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/timeGroupContainer"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

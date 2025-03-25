@@ -1,111 +1,142 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:background="#FAFAFA"
+    android:padding="24dp"
     tools:context=".RegisterActivity">
 
-
-    <EditText
-        android:id="@+id/firstnameRegister"
-        android:layout_width="360dp"
-        android:layout_height="68dp"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="15dp"
-        android:ems="10"
-        android:hint="Name"
-        android:inputType="text"
-        app:layout_constraintBottom_toTopOf="@+id/emailAddressRegister"
+    <!-- Titre -->
+    <TextView
+        android:id="@+id/titleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Créer un compte"
+        android:textColor="#6200EE"
+        android:textSize="24sp"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-
-    <EditText
-        android:id="@+id/emailAddressRegister"
-        android:layout_width="360dp"
-        android:layout_height="78dp"
-        android:layout_marginTop="8dp"
-        android:ems="10"
-        android:hint="Email"
-        android:inputType="textEmailAddress"
-        app:layout_constraintBottom_toTopOf="@+id/passwordRegister"
-        app:layout_constraintEnd_toEndOf="@+id/firstnameRegister"
-        app:layout_constraintStart_toStartOf="@+id/firstnameRegister"
-        app:layout_constraintTop_toBottomOf="@+id/firstnameRegister" />
-
-
-    <EditText
-        android:id="@+id/passwordRegister"
-        android:layout_width="360dp"
-        android:layout_height="63dp"
-        android:layout_marginTop="8dp"
-        android:ems="10"
-        android:hint="Password"
-        android:inputType="textPassword"
-        app:layout_constraintBottom_toTopOf="@+id/communeRegister"
-        app:layout_constraintEnd_toEndOf="@+id/emailAddressRegister"
-        app:layout_constraintStart_toStartOf="@+id/emailAddressRegister"
-        app:layout_constraintTop_toBottomOf="@+id/emailAddressRegister" />
-
-    <EditText
-        android:id="@+id/communeRegister"
-        android:layout_width="360dp"
-        android:layout_height="61dp"
-        android:layout_marginTop="8dp"
-        android:ems="10"
-        android:hint="Commune"
-        android:inputType="text"
-        app:layout_constraintBottom_toTopOf="@+id/teacherSwitch"
-        app:layout_constraintEnd_toEndOf="@+id/passwordRegister"
-        app:layout_constraintStart_toStartOf="@+id/passwordRegister"
-        app:layout_constraintTop_toBottomOf="@+id/passwordRegister" />
-
-    <Switch
-        android:id="@+id/teacherSwitch"
-        android:layout_width="99dp"
-        android:layout_height="61dp"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="15dp"
-        android:text="teacher"
-        app:layout_constraintBottom_toTopOf="@+id/signInRegister"
+    <!-- Champ Prénom -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/firstnameContainer"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:hint="Nom"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/communeRegister" />
+        app:layout_constraintTop_toBottomOf="@+id/titleText">
 
-    <Button
-        android:id="@+id/signInRegister"
-        android:layout_width="105dp"
-        android:layout_height="61dp"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="15dp"
-        android:onClick="onSignInButtonClicked"
-        android:text="Sign in"
-        app:layout_constraintBottom_toTopOf="@+id/progressBarRegister"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/firstnameRegister"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textCapWords"
+            android:minHeight="48dp"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Champ Email -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/emailContainer"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="Email"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/firstnameContainer">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/emailAddressRegister"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textEmailAddress"
+            android:minHeight="48dp"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Champ Mot de passe -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/passwordContainer"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="Mot de passe"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/emailContainer">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/passwordRegister"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:minHeight="48dp"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Champ Commune -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/communeContainer"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="Commune"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/passwordContainer">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/communeRegister"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textCapWords"
+            android:minHeight="48dp"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Switch Enseignant -->
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/teacherSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Enseignant "
+        android:textColor="#6200EE"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/communeContainer" />
+
+    <!-- Bouton S'inscrire -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/signInRegister"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="24dp"
+        android:text="S'inscrire"
+        android:textColor="#FFFFFF"
+        android:onClick="onSignInButtonClicked"
+        app:backgroundTint="#6200EE"
+        app:cornerRadius="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/teacherSwitch" />
 
+    <!-- ProgressBar -->
     <ProgressBar
         android:id="@+id/progressBarRegister"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="15dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:indeterminateTint="#6200EE"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/signInRegister" />
