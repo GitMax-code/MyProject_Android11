@@ -183,7 +183,7 @@ public class ChatActivity extends AppCompatActivity {
                     .get()
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {
-                            String userName = documentSnapshot.getString("name"); // Assurez-vous que le champ "displayName" existe dans Firestore
+                            String userName = documentSnapshot.getString("name");
                             holder.textUser.setText(userName != null ? userName : "Utilisateur inconnu");
                         } else {
                             holder.textUser.setText("Utilisateur inconnu");
