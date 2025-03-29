@@ -108,6 +108,12 @@ public class ListUserAddedActivity extends AppCompatActivity {
         fetchUsersFromUserGroups(groupId);
     }
 
+    public void onMapButtonClicked(View view){
+        Intent intent = new Intent(ListUserAddedActivity.this, MapActivity.class);
+        intent.putExtra("group_id", groupId); // Passer l'ID du groupe à ChatActivity
+        startActivity(intent);
+    }
+
     private void fetchUsersFromUserGroups(String groupId) {
         db.collection("user_groups")
                 .whereEqualTo("groupId", groupId)

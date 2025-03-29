@@ -39,6 +39,8 @@ public class MapActivity extends AppCompatActivity {
     private FirebaseFirestore db;
 
     private String testNameCommune;
+
+    private String groupId; // Identifiant du groupe (passé depuis l'intention)
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     private static final String TAG = "MapActivity";
@@ -61,6 +63,9 @@ public class MapActivity extends AppCompatActivity {
 
         // Initialisation de Firestore
         db = FirebaseFirestore.getInstance();
+
+        // Récupérer l'ID du groupe passé par l'intention
+        groupId = getIntent().getStringExtra("id");
 
         // Chargement des données
         fetchData();

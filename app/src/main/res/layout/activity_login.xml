@@ -15,7 +15,9 @@
         android:id="@+id/titleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
         android:text="Connexion"
         android:textColor="#6200EE"
         android:textSize="24sp"
@@ -30,7 +32,9 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
         android:hint="Email"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -41,7 +45,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textEmailAddress"
-            android:minHeight="48dp"/>
+            android:minHeight="48dp" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Champ Mot de passe -->
@@ -50,7 +54,9 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
         android:hint="Mot de passe"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -61,7 +67,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPassword"
-            android:minHeight="48dp"/>
+            android:minHeight="48dp" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Bouton Connexion -->
@@ -69,10 +75,12 @@
         android:id="@+id/loginButton"
         android:layout_width="0dp"
         android:layout_height="48dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="24dp"
+        android:layout_marginEnd="16dp"
+        android:onClick="loginButtonClicked"
         android:text="Se connecter"
         android:textColor="#FFFFFF"
-        android:onClick="loginButtonClicked"
         app:backgroundTint="#6200EE"
         app:cornerRadius="8dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -85,10 +93,12 @@
         style="@style/Widget.MaterialComponents.Button.TextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:onClick="registerButtonClicked"
         android:text="S'inscrire"
         android:textColor="#6200EE"
-        android:onClick="registerButtonClicked"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/loginButton" />
@@ -98,7 +108,9 @@
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
         android:indeterminateTint="#6200EE"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

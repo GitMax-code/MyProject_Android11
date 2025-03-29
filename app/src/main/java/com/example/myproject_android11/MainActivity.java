@@ -57,10 +57,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void onTestButtonClicked(View view){
-        mAuth.signOut();
-        startActivity(new Intent(this,LoginActivity.class));
-    }
 
     public void onJSONButtonClicked(View view){
         // Créer une intention pour démarrer SecondActivity
@@ -88,11 +84,6 @@ public class MainActivity extends AppCompatActivity {
     public void onLogoutButtonClicked(View view){
         FirebaseAuth.getInstance().signOut();
         startActivity(new Intent(this,MainActivity.class));
-    }
-
-    public void onMapButtonClicked(View view){
-        Intent intent = new Intent(MainActivity.this, MapActivity.class);
-        startActivity(intent);
     }
 
     public void onGroupButtonClicked(View view){

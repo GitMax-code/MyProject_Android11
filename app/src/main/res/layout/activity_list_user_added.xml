@@ -6,65 +6,117 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FAFAFA"
-    android:padding="24dp"
+    android:background="@android:color/white"
+    android:padding="16dp"
     tools:context=".ListUserAddedActivity">
 
-    <!-- Titre -->
+    <!-- Titre avec ombre et police améliorée -->
     <TextView
         android:id="@+id/titleTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Participants"
-        android:textSize="24sp"
-        android:textColor="#6200EE"
-        android:textStyle="bold"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginBottom="16dp"
+        android:text="Participants"
+        android:textColor="#6200EE"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:elevation="4dp"
+        android:fontFamily="sans-serif-medium"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Liste des utilisateurs -->
-    <ListView
-        android:id="@+id/listViewListUserAdded"
+    <!-- Carte pour la liste avec ombre et coins arrondis -->
+    <androidx.cardview.widget.CardView
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginBottom="16dp"
-        android:divider="#E0E0E0"
-        android:dividerHeight="1dp"
-        android:background="@android:color/white"
-        android:padding="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/chat"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        app:layout_constraintBottom_toTopOf="@+id/buttonContainer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/titleTextView"/>
+        app:layout_constraintTop_toBottomOf="@+id/titleTextView">
 
-    <!-- Bouton Chat -->
-    <Button
-        android:id="@+id/chat"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:backgroundTint="#6200EE"
-        android:text="Chat"
-        android:textColor="#FFFFFF"
-        android:onClick="onChatButtonClicked"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/saveButton"
-        app:layout_constraintStart_toStartOf="parent"/>
+        <!-- Liste des utilisateurs avec style amélioré -->
+        <ListView
+            android:id="@+id/listViewListUserAdded"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/white"
+            android:divider="#E0E0E0"
+            android:dividerHeight="1dp"
+            android:padding="8dp"
+            android:scrollbars="vertical" />
+    </androidx.cardview.widget.CardView>
 
-    <!-- Bouton Enregistrer -->
-    <Button
-        android:id="@+id/saveButton"
+    <!-- Conteneur pour les boutons -->
+    <LinearLayout
+        android:id="@+id/buttonContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:backgroundTint="#6200EE"
-        android:text="Enregistrer"
-        android:textColor="#FFFFFF"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="horizontal"
+        android:weightSum="3"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/chat"/>
+        app:layout_constraintStart_toStartOf="parent">
+
+        <!-- Bouton Chat avec style Material -->
+        <Button
+            android:id="@+id/chat"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:backgroundTint="#6200EE"
+            android:fontFamily="sans-serif-medium"
+            android:onClick="onChatButtonClicked"
+            android:text="Chat"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            app:cornerRadius="24dp" />
+
+        <!-- Bouton Map avec style cohérent -->
+        <Button
+            android:id="@+id/mapButton"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:backgroundTint="#6200EE"
+            android:fontFamily="sans-serif-medium"
+            android:onClick="onMapButtonClicked"
+            android:text="Map"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            app:cornerRadius="24dp" />
+
+        <!-- Bouton Enregistrer -->
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:backgroundTint="#6200EE"
+            android:text="Enregistrer"
+            android:textColor="#FFFFFF"
+            android:textAllCaps="false"
+            android:fontFamily="sans-serif-medium"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            app:cornerRadius="24dp" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

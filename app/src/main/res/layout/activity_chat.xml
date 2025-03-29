@@ -28,10 +28,12 @@
         android:id="@+id/messageInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="8dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         android:background="@android:color/white"
         android:elevation="4dp"
+        android:orientation="horizontal"
+        android:padding="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -41,22 +43,22 @@
             android:id="@+id/editTextMessage"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_marginEnd="8dp"
+            android:layout_weight="1"
             android:hint="Écrivez un message..."
             android:inputType="textCapSentences|textMultiLine"
             android:maxLines="3"
-            android:minHeight="48dp"/>
+            android:minHeight="48dp" />
 
         <!-- Bouton d'envoi -->
         <Button
             android:id="@+id/sendButton"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
-            android:text="Envoyer"
-            android:textColor="#FFFFFF"
             android:backgroundTint="#6200EE"
-            android:minWidth="96dp"/>
+            android:minWidth="96dp"
+            android:text="Envoyer"
+            android:textColor="#FFFFFF" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

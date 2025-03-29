@@ -15,45 +15,52 @@
         android:id="@+id/titleTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
         android:text="Available Groups"
-        android:textSize="24sp"
         android:textColor="#6200EE"
+        android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- ListView original (conservé pour compatibilité) -->
     <ListView
         android:id="@+id/listViewListGroup"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
+        android:background="@android:color/white"
         android:divider="#E0E0E0"
         android:dividerHeight="1dp"
-        android:background="@android:color/white"
         android:padding="8dp"
         app:layout_constraintBottom_toTopOf="@+id/joinGroupButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/titleTextView"/>
+        app:layout_constraintTop_toBottomOf="@+id/titleTextView" />
 
     <!-- Bouton Rejoindre -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/joinGroupButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:onClick="onJoinGroupButtonClick"
         android:text="Join Group"
         android:textColor="#FFFFFF"
-        android:onClick="onJoinGroupButtonClick"
         app:backgroundTint="#6200EE"
         app:cornerRadius="8dp"
         app:icon="@android:drawable/ic_menu_add"
         app:iconTint="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
