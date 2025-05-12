@@ -4,8 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.CalendarView;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -13,25 +15,27 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
 import com.example.myproject_android11.model.UserGroup;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.example.myproject_android11.model.Group;
+
+import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 
 public class CreateGroupActivity extends AppCompatActivity {
 
     EditText NameGroup;
     EditText TimeGroup;
-    CalendarView calendarView;
-    String date;
+    Spinner dayOfWeekSpinner;
+    String selectedDay;
     FirebaseAuth mAuth;
     FirebaseFirestore db;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,39 +47,81 @@ public class CreateGroupActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
         // Initialize Firebase Firestore
         db = FirebaseFirestore.getInstance();
+
         NameGroup = findViewById(R.id.NameGroup);
         TimeGroup = findViewById(R.id.TimeGroupe);
-        calendarView = findViewById(R.id.calendarView);
-        calendarView.setOnDateChangeListener((calendarView, year, month, dayOfMonth) -> {
-            date = dayOfMonth + "/" + (month + 1) + "/" + year;  // Mois commence à 0, donc +1
+        dayOfWeekSpinner = findViewById(R.id.dayOfWeekSpinner);
+
+        setupDayOfWeekSpinner();
+    }
+
+    private void setupDayOfWeekSpinner() {
+        // Tableau des jours de la semaine (vous pouvez le traduire si besoin)
+        String[] daysOfWeek = new String[]{
+                "Select a day", // Premier élément comme hint
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday"
+        };
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                daysOfWeek
+        );
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        dayOfWeekSpinner.setAdapter(adapter);
+
+        // Écouteur pour la sélection
+        dayOfWeekSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position > 0) { // Ignorer le premier élément "Select a day"
+                    selectedDay = parent.getItemAtPosition(position).toString();
+                } else {
+                    selectedDay = null;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                selectedDay = null;
+            }
         });
     }
 
     public void createGroupButton(View view) {
-
         String name = NameGroup.getText().toString();
         String time = TimeGroup.getText().toString();
 
-
-
-        if (name.isEmpty() || date.isEmpty() || date == null || time.isEmpty()) {
-            Toast.makeText(CreateGroupActivity.this, "Veuillez remplir tous les champs", Toast.LENGTH_SHORT).show();
+        if (name.isEmpty() || selectedDay == null || time.isEmpty()) {
+            Toast.makeText(CreateGroupActivity.this, "Veuillez remplir tous les champs et sélectionner un jour", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        createGroup(name, date, time);
+        createGroup(name, selectedDay, time);
 
-       // Créer une intention pour démarrer SecondActivity
-       Intent intent = new Intent(CreateGroupActivity.this, MainActivity.class);
-       // Démarrer l'activité
-       startActivity(intent);
+        // Redirection vers MainActivity
+        Intent intent = new Intent(CreateGroupActivity.this, MainActivity.class);
+        startActivity(intent);
     }
-    public void createGroup(String name, String date, String time) {
-        Group group = new Group( null, name, mAuth.getCurrentUser().getUid(), date, time);
+
+    // Les méthodes createGroup() et addCreatorToUserGroup() restent identiques
+
+
+    // Modifiez votre méthode createGroup
+    public void createGroup(String name, String day, String time) {
+        Group group = new Group(null, name, mAuth.getCurrentUser().getUid(), day, time);
         db.collection("groups")
                 .add(group)
                 .addOnSuccessListener(documentReference -> {
@@ -84,6 +130,9 @@ public class CreateGroupActivity extends AppCompatActivity {
                     documentReference.update("id", groupId).addOnSuccessListener(aVoid -> {
                         Toast.makeText(CreateGroupActivity.this, "Groupe créé avec succès !", Toast.LENGTH_SHORT).show();
                         addCreatorToUserGroup(mAuth.getCurrentUser().getUid(), groupId);
+
+                        // Programmer la notification
+                        //scheduleNotification(name, day, time);
                     }).addOnFailureListener(e ->
                             Toast.makeText(CreateGroupActivity.this, "Erreur lors de l'ajout de l'ID : " + e.getMessage(), Toast.LENGTH_SHORT).show()
                     );
@@ -94,7 +143,6 @@ public class CreateGroupActivity extends AppCompatActivity {
     }
 
     private void addCreatorToUserGroup(String creatorId, String groupId) {
-        // 🔹 Créer un UserGroup pour le créateur
         UserGroup userGroup = new UserGroup(null, creatorId, groupId);
 
         db.collection("user_groups")
@@ -108,5 +156,21 @@ public class CreateGroupActivity extends AppCompatActivity {
                     Log.e("CreateGroupActivity", "Erreur lors de l'ajout du créateur au groupe", e);
                 });
     }
+
+
+
+    private int convertDayOfWeek(String day) {
+        switch (day.toLowerCase()) {
+            case "monday": return Calendar.MONDAY;
+            case "tuesday": return Calendar.TUESDAY;
+            case "wednesday": return Calendar.WEDNESDAY;
+            case "thursday": return Calendar.THURSDAY;
+            case "friday": return Calendar.FRIDAY;
+            case "saturday": return Calendar.SATURDAY;
+            case "sunday": return Calendar.SUNDAY;
+            default: return Calendar.MONDAY;
+        }
+    }
+
 
 }

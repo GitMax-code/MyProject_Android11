@@ -7,7 +7,7 @@ public class Group {
     String id;
     String name;
     String creator;
-    String date;
+    String dayOfWeek;
     String time;
 
 
@@ -15,11 +15,11 @@ public class Group {
         // Constructeur par défaut requis pour Firestore
     }
 
-    public Group(String id, String name, String creator, String date, String time) {
+    public Group(String id, String name, String creator, String dayOfWeek, String time) {
         this.id = id;
         this.name = name;
         this.creator = creator;
-        this.date = date;
+        this.dayOfWeek = dayOfWeek;
         this.time = time;
 
     }
@@ -37,15 +37,13 @@ public class Group {
         this.creator = creator;
     }
 
-    public void setDate(String date){
-        this.date = date;
+    public void setDayOfWeek(String dayOfWeek){
+        this.dayOfWeek = dayOfWeek;
     }
 
     public void setTime(String time){
         this.time = time;
     }
-
-
 
 
     //Getter
@@ -61,8 +59,8 @@ public class Group {
         return creator;
     }
 
-    public String getDate() {
-        return date;
+    public String getDayOfWeek() {
+        return dayOfWeek;
     }
 
     public String getTime() {

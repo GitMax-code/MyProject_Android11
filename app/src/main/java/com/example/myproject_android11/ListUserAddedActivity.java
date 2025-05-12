@@ -20,6 +20,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FieldPath;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -172,26 +173,30 @@ public class ListUserAddedActivity extends AppCompatActivity {
             String userId = userIdList.get(i);
             boolean isPresent = presenceMap.get(userId); // Récupérer la présence depuis la map
 
-            // Mettre à jour la présence dans Firestore
-            updatePresenceStatus(userId, isPresent);
+            // 2. Ajouter un nouveau document avec ID auto-généré
+            addNewPresenceRecord(userId, isPresent);
         }
 
         Toast.makeText(this, "Présence enregistrée", Toast.LENGTH_SHORT).show();
     }
 
-    private void updatePresenceStatus(String userId, boolean isPresent) {
-        // Créer un objet pour stocker la présence
+    private void addNewPresenceRecord(String userId, boolean isPresent) {
+        // 3. Créer un objet avec les données
         Map<String, Object> presenceData = new HashMap<>();
         presenceData.put("userId", userId);
         presenceData.put("groupId", groupId);
         presenceData.put("isPresent", isPresent);
+        presenceData.put("timestamp", FieldValue.serverTimestamp()); // Optionnel
 
-        // Mettre à jour ou créer un document dans la collection "presence"
+        // 4. Ajouter un nouveau document avec ID auto-généré
         db.collection("presence")
-                .document(userId + "_" + groupId) // ID unique pour chaque utilisateur-groupe
-                .set(presenceData)
-                .addOnSuccessListener(aVoid -> Log.d("DEBUG", "Présence mise à jour pour l'utilisateur: " + userId))
-                .addOnFailureListener(e -> Log.e("ERROR", "Erreur lors de la mise à jour de la présence", e));
+                .add(presenceData) // .add() au lieu de .set() avec ID spécifié
+                .addOnSuccessListener(documentReference -> {
+                    Log.d("DEBUG", "Nouvelle présence ajoutée ID: " + documentReference.getId());
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("ERROR", "Erreur ajout présence", e);
+                });
     }
 
     public void onChatButtonClicked(View view) {

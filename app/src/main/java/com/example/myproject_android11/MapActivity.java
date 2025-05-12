@@ -11,8 +11,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,6 +35,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MapActivity extends AppCompatActivity {
     private MapView mapView;
@@ -65,8 +68,12 @@ public class MapActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
 
         // Récupérer l'ID du groupe passé par l'intention
-        groupId = getIntent().getStringExtra("id");
-
+        groupId = getIntent().getStringExtra("group_id");
+        if (groupId == null) {
+            Toast.makeText(this, "Erreur : Aucun groupe sélectionné", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
         // Chargement des données
         fetchData();
     }
@@ -100,16 +107,17 @@ public class MapActivity extends AppCompatActivity {
         mapView.getOverlays().add(polyline);
     }
 
-    private void drawPolygone(ArrayList<ArrayList<GeoPoint>> allPolygons, HashMap<String, Float> absenceRatioByCommune) {
-        for (ArrayList<GeoPoint> geoPoints : allPolygons) {
-            if (geoPoints.size() < 3) continue; // Vérifier qu'il y a au moins 3 points pour un polygone
+    private void drawPolygone(ArrayList<CommunePolygon> allPolygons, HashMap<String, Float> absenceRatioByCommune) {
+        for (CommunePolygon communePolygon  : allPolygons) {
+            if (communePolygon.geoPoints.size() < 3) continue; // Vérifier qu'il y a au moins 3 points pour un polygone
 
             Polygon polygon = new Polygon();
-            polygon.setPoints(geoPoints);
+            polygon.setPoints(communePolygon.geoPoints);
 
             // Déterminer la couleur en fonction du ratio d'absences
-            String communeName = getCommuneNameFromPolygon(geoPoints); // Méthode à implémenter
+            String communeName = communePolygon.name.toLowerCase();// Méthode à implémenter
             float absenceRatio = absenceRatioByCommune.getOrDefault(communeName, 0f);
+
 
             int color = getColorForAbsenceRatio(absenceRatio); // Méthode à implémenter
 
@@ -135,7 +143,7 @@ public class MapActivity extends AppCompatActivity {
 
             if (jsonResponse != null) {
                 // Récupérer la liste des polygones
-                ArrayList<ArrayList<GeoPoint>> polygons = parseJson(jsonResponse);
+                ArrayList<CommunePolygon> polygons = parseJson(jsonResponse);
 
                 // Récupérer les données de présence et mettre à jour les couleurs
                 fetchPresenceData(polygons);
@@ -145,53 +153,97 @@ public class MapActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void fetchPresenceData(ArrayList<ArrayList<GeoPoint>> polygons) {
+    private void fetchPresenceData(ArrayList<CommunePolygon> polygons) {
+        Log.d(TAG, "Début fetchPresenceData");
+
         db.collection("presence")
+                .whereEqualTo("groupId", groupId)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    HashMap<String, Integer> presenceCountByCommune = new HashMap<>();
-                    HashMap<String, Integer> absenceCountByCommune = new HashMap<>();
+                    int totalDocs = queryDocumentSnapshots.size();
+                    Log.d(TAG, "Documents présence trouvés: " + totalDocs);
 
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        String userId = document.getString("userId");
-                        boolean isPresent = document.getBoolean("isPresent");
+                    if (totalDocs == 0) {
+                        Log.w(TAG, "Aucune donnée pour ce groupe");
+                        drawPolygone(polygons, new HashMap<>());
+                        return;
+                    }
 
-                        // Récupérer la commune de l'utilisateur
+                    // Compteur pour suivre les requêtes terminées
+                    AtomicInteger processedDocs = new AtomicInteger(0);
+                    HashMap<String, Integer> presenceCount = new HashMap<>();
+                    HashMap<String, Integer> absenceCount = new HashMap<>();
+
+                    for (CommunePolygon commune : polygons) {
+                        String normalizedName = commune.name.toLowerCase();
+                        presenceCount.put(normalizedName, 0);
+                        absenceCount.put(normalizedName, 0);
+                    }
+
+
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        String userId = doc.getString("userId");
+                        Boolean isPresent = doc.getBoolean("isPresent");
+
+                        if (userId == null || isPresent == null) {
+                            Log.e(TAG, "Données invalides dans le document " + doc.getId());
+                            processedDocs.incrementAndGet();
+                            continue;
+                        }
+
                         db.collection("users")
                                 .document(userId)
                                 .get()
-                                .addOnSuccessListener(userDocument -> {
-                                    String commune = userDocument.getString("commune");
-                                    if (commune != null) {
-                                        if (isPresent) {
-                                            presenceCountByCommune.put(commune, presenceCountByCommune.getOrDefault(commune, 0) + 1);
-                                        } else {
-                                            absenceCountByCommune.put(commune, absenceCountByCommune.getOrDefault(commune, 0) + 1);
+                                .addOnSuccessListener(userDoc -> {
+                                    String commune = userDoc.getString("commune");
+                                    // Normaliser la casse
+                                    String normalizedCommune = commune.trim().toLowerCase();
+                                    if (normalizedCommune != null) {
+                                        synchronized (this) {
+                                            if (isPresent) {
+                                                presenceCount.put(normalizedCommune, presenceCount.getOrDefault(normalizedCommune, 0) + 1);
+                                            } else {
+                                                absenceCount.put(normalizedCommune, absenceCount.getOrDefault(normalizedCommune, 0) + 1);
+                                            }
                                         }
+                                        Log.d(TAG, "Mise à jour - " + normalizedCommune +
+                                                " | Présences: " + presenceCount.get(normalizedCommune) +
+                                                " | Absences: " + absenceCount.get(normalizedCommune));
                                     }
 
-                                    // Log pour vérifier les données
-                                    Log.d(TAG, "Commune: " + commune + ", Présences: " + presenceCountByCommune.getOrDefault(commune, 0) + ", Absences: " + absenceCountByCommune.getOrDefault(commune, 0));
+                                    if (processedDocs.incrementAndGet() == totalDocs) {
+                                        calculateAndDrawRatios(polygons, presenceCount, absenceCount);
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Erreur user doc", e);
+                                    if (processedDocs.incrementAndGet() == totalDocs) {
+                                        calculateAndDrawRatios(polygons, presenceCount, absenceCount);
+                                    }
                                 });
                     }
-
-                    // Calculer les ratios d'absences par commune
-                    HashMap<String, Float> absenceRatioByCommune = new HashMap<>();
-                    for (String commune : presenceCountByCommune.keySet()) {
-                        int total = presenceCountByCommune.get(commune) + absenceCountByCommune.getOrDefault(commune, 0);
-                        float absenceRatio = (float) absenceCountByCommune.getOrDefault(commune, 0) / total;
-                        absenceRatioByCommune.put(commune, absenceRatio);
-
-                        // Log pour vérifier les ratios
-                        Log.d(TAG, "Commune: " + commune + ", Ratio d'absences: " + absenceRatio);
-                    }
-
-                    // Mettre à jour les couleurs des polygones
-                    drawPolygone(polygons, absenceRatioByCommune);
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Erreur lors de la récupération des données de présence", e);
-                });
+                .addOnFailureListener(e -> Log.e(TAG, "Erreur fetch présence", e));
+    }
+
+    private void calculateAndDrawRatios(ArrayList<CommunePolygon> polygons,
+                                        HashMap<String, Integer> presenceCount,
+                                        HashMap<String, Integer> absenceCount) {
+        HashMap<String, Float> ratios = new HashMap<>();
+
+        for (String commune : presenceCount.keySet()) {
+            int total = presenceCount.get(commune) + absenceCount.getOrDefault(commune, 0);
+            float ratio = (float) absenceCount.getOrDefault(commune, 0) / total;
+            ratios.put(commune, ratio);
+
+            // CE LOG S'AFFICHERA MAINTENANT
+            Log.d(TAG, "Ratio final - " + commune +
+                    " | Présences: " + presenceCount.get(commune) +
+                    " | Absences: " + absenceCount.getOrDefault(commune, 0) +
+                    " | Ratio: " + ratio);
+        }
+
+        drawPolygone(polygons, ratios);
     }
 
     private String getJsonFromUrl(String urlString) {
@@ -239,8 +291,8 @@ public class MapActivity extends AppCompatActivity {
         return jsonStr;
     }
 
-    private ArrayList<ArrayList<GeoPoint>> parseJson(String jsonString) {
-        ArrayList<ArrayList<GeoPoint>> allPolygons = new ArrayList<>();
+    private ArrayList<CommunePolygon> parseJson(String jsonString) {
+        ArrayList<CommunePolygon> allPolygons = new ArrayList<>();
 
         try {
             JSONObject jsonObject = new JSONObject(jsonString);
@@ -248,6 +300,7 @@ public class MapActivity extends AppCompatActivity {
 
             for (int i = 0; i < resultsArray.length(); i++) {
                 JSONObject resultObject = resultsArray.getJSONObject(i);
+                String communeName = resultObject.getString("name_fr");
                 JSONObject geoShape = resultObject.getJSONObject("geo_shape");
                 JSONObject geometry = geoShape.getJSONObject("geometry");
                 JSONArray coordinatesArray = geometry.getJSONArray("coordinates");
@@ -256,11 +309,11 @@ public class MapActivity extends AppCompatActivity {
                     // Si c'est un MultiPolygon, on boucle sur tous les polygones
                     for (int j = 0; j < coordinatesArray.length(); j++) {
                         JSONArray polygonCoordinates = coordinatesArray.getJSONArray(j);
-                        allPolygons.add(convertToGeoPoints(polygonCoordinates));
+                        allPolygons.add(new CommunePolygon(communeName, convertToGeoPoints(polygonCoordinates)));
                     }
                 } else if (geometry.getString("type").equals("Polygon")) {
                     // Si c'est un Polygon, on le convertit directement
-                    allPolygons.add(convertToGeoPoints(coordinatesArray));
+                    allPolygons.add(new CommunePolygon(communeName, convertToGeoPoints(coordinatesArray)));
                 }
             }
 
@@ -288,19 +341,28 @@ public class MapActivity extends AppCompatActivity {
         return geoPoints;
     }
 
-    private String getCommuneNameFromPolygon(ArrayList<GeoPoint> geoPoints) {
-        // Implémentez cette méthode pour retourner le nom de la commune
-        // en fonction des coordonnées du polygone.
-        // Par exemple, vous pouvez utiliser une API ou une base de données locale.
-        return "Uccle"; // Exemple (à remplacer par une logique réelle)
-    }
 
     private int getColorForAbsenceRatio(float absenceRatio) {
+
+        if (Float.isNaN(absenceRatio)) {
+            return Color.argb(100, 150, 150, 150); // Gris pour aucune donnée
+        }
         // Si le ratio d'absences est supérieur à 0.5, la couleur est rouge
-        if (absenceRatio > 0.5f) {
+        else if (absenceRatio > 0.5f) {
             return Color.argb(100, 255, 0, 0); // Rouge
-        } else {
+        }
+        else {
             return Color.argb(100, 0, 255, 0); // Vert
+        }
+    }
+
+    private static class CommunePolygon {
+        String name;
+        ArrayList<GeoPoint> geoPoints;
+
+        CommunePolygon(String name, ArrayList<GeoPoint> geoPoints) {
+            this.name = name;
+            this.geoPoints = geoPoints;
         }
     }
 }
