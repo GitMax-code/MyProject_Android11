@@ -87,7 +87,8 @@ public class RegisterActivity extends AppCompatActivity {
     public void onStart(){
         super.onStart();
         if (mAuth.getCurrentUser() != null) {
-            startActivity(new Intent(this, MainActivity.class));
+            //startActivity(new Intent(this, MainActivity.class));
+            startActivity(new Intent(this, ListGroupActivity.class));
             finish();
         }
     }
@@ -143,7 +144,8 @@ public class RegisterActivity extends AppCompatActivity {
                             String userId = mAuth.getCurrentUser().getUid();
                             createUser(userId, firstnameRegister.getText().toString(), email, commune);
 
-                            Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                            //Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                            Intent intent = new Intent(RegisterActivity.this, ListGroupActivity.class);
                             startActivity(intent);
                             finish();
                         }

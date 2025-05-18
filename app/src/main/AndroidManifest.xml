@@ -31,9 +31,20 @@
         <activity
             android:name=".ListUserAddedActivity"
             android:exported="false" />
+        <!--
         <activity
             android:name=".ListGroupActivity"
             android:exported="false" />
+            -->
+        <activity
+            android:name=".ListGroupActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".CreateGroupActivity"
             android:exported="false" />
@@ -52,7 +63,7 @@
         <activity
             android:name=".RegisterActivity"
             android:exported="false" />
-
+<!--
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -62,6 +73,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+-->
+        <service
+            android:name="MyFirebaseMessagingService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name="com.google.firebase.components.ComponentDiscoveryService"
+            android:exported="false">
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.messaging.FirebaseMessagingRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+        </service>
+
     </application>
+
+
 
 </manifest>

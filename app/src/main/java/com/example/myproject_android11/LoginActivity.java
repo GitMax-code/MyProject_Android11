@@ -53,7 +53,8 @@ public class LoginActivity extends AppCompatActivity {
     public void onStart(){
         super.onStart();
         if (mAuth.getCurrentUser() != null) {
-            startActivity(new Intent(this, MainActivity.class));
+            //startActivity(new Intent(this, MainActivity.class));
+            startActivity(new Intent(this, ListGroupActivity.class));
             finish();
         }
     }
@@ -105,7 +106,8 @@ public class LoginActivity extends AppCompatActivity {
                             Log.e("MyTag", "---------->"+task.getException().toString());
 
                         } else {
-                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                            //Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                            Intent intent = new Intent(LoginActivity.this, ListGroupActivity.class);
                             startActivity(intent);
                             finish();
                         }

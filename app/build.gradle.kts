@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.play.services.maps)
     implementation(libs.firebase.firestore)
     implementation(libs.gridlayout)
+    implementation(libs.firebase.messaging)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -75,5 +76,7 @@ dependencies {
 
     // Solution pour l'erreur ListenableFuture
     implementation ("com.google.guava:guava:31.0.1-android")
+
+
 
 }

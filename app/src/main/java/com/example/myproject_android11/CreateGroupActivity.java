@@ -112,8 +112,9 @@ public class CreateGroupActivity extends AppCompatActivity {
         createGroup(name, selectedDay, time);
 
         // Redirection vers MainActivity
-        Intent intent = new Intent(CreateGroupActivity.this, MainActivity.class);
-        startActivity(intent);
+        //Intent intent = new Intent(CreateGroupActivity.this, MainActivity.class);
+
+
     }
 
     // Les méthodes createGroup() et addCreatorToUserGroup() restent identiques
@@ -131,8 +132,8 @@ public class CreateGroupActivity extends AppCompatActivity {
                         Toast.makeText(CreateGroupActivity.this, "Groupe créé avec succès !", Toast.LENGTH_SHORT).show();
                         addCreatorToUserGroup(mAuth.getCurrentUser().getUid(), groupId);
 
-                        // Programmer la notification
-                        //scheduleNotification(name, day, time);
+                        goToListGroup();
+
                     }).addOnFailureListener(e ->
                             Toast.makeText(CreateGroupActivity.this, "Erreur lors de l'ajout de l'ID : " + e.getMessage(), Toast.LENGTH_SHORT).show()
                     );
@@ -170,6 +171,11 @@ public class CreateGroupActivity extends AppCompatActivity {
             case "sunday": return Calendar.SUNDAY;
             default: return Calendar.MONDAY;
         }
+    }
+
+    private void goToListGroup(){
+        Intent intent = new Intent(CreateGroupActivity.this, ListGroupActivity.class);
+        startActivity(intent);
     }
 
 

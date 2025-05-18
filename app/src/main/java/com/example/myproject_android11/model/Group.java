@@ -67,5 +67,10 @@ public class Group {
         return time;
     }
 
+    @Override
+    public String toString() {
+        return name;
+    }
+
 
 }

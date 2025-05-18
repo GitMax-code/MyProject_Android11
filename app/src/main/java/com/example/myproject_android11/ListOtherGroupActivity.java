@@ -66,9 +66,10 @@ public class ListOtherGroupActivity extends AppCompatActivity {
             return;
         }
 
+
         listView.setOnItemClickListener((parent, view, position, id) -> {
             selectedGroupId = groupIdList.get(position);
-            Toast.makeText(this, "Selected group: " + selectedGroupId, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Group selected.", Toast.LENGTH_SHORT).show();
         });
 
         loadAvailableGroups();
@@ -80,6 +81,7 @@ public class ListOtherGroupActivity extends AppCompatActivity {
                 .whereEqualTo("userId", userId)
                 .get()
                 .addOnSuccessListener(userGroupsSnapshot -> {
+
                     List<String> joinedGroupIds = new ArrayList<>();
                     for (QueryDocumentSnapshot document : userGroupsSnapshot) {
                         String groupId = document.getString("groupId");
@@ -87,7 +89,7 @@ public class ListOtherGroupActivity extends AppCompatActivity {
                             joinedGroupIds.add(groupId);
                         }
                     }
-
+                    Log.d("loadAvailableGroups", "avant db.collection--------------");
                     // 2. Get all groups and filter out joined ones
                     db.collection("groups")
                             .get()

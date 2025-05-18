@@ -13,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -23,6 +24,7 @@ import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,11 +40,17 @@ public class ListUserAddedActivity extends AppCompatActivity {
     private Button saveButton; // Bouton pour enregistrer la présence
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+
+    private String groupCreatorId; // ID du créateur du groupe
+    private Button deleteGroupButton;
+    private Button leaveGroupButton;
     private String groupId; // L'ID du groupe récupéré depuis la page précédente
+    private String currentUserId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("ListUserAddedActivity", "onCreate-------------------------------");
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_list_user_added);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -50,11 +58,20 @@ public class ListUserAddedActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
+        Log.d("ListUserAddedActivity", "avant mauth-------------------------------");
         // Initialiser Firebase
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        Log.d("ListUserAddedActivity", "avant deleteGroupButton-------------------------------");
+        // Initialisation des boutons
+        deleteGroupButton = findViewById(R.id.deleteGroupButton);
+        leaveGroupButton = findViewById(R.id.leaveGroupButton);
 
+        // Cacher les deux boutons par défaut
+        Log.d("ListUserAddedActivity", "avant GONE-------------------------------");
+        deleteGroupButton.setVisibility(View.GONE);
+        leaveGroupButton.setVisibility(View.GONE);
+        Log.d("ListUserAddedActivity", "apres GONE-------------------------------");
         // Initialisation des vues et de la liste
         listView = findViewById(R.id.listViewListUserAdded);
         userList = new ArrayList<>();
@@ -90,7 +107,8 @@ public class ListUserAddedActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-
+        Log.d("ListUserAddedActivity", "onStart");
+        currentUserId = mAuth.getCurrentUser().getUid();
         // Récupérer l'ID du groupe depuis l'Intent envoyé par ListGroupActivity
         groupId = getIntent().getStringExtra("id");
         if (groupId == null) {
@@ -106,9 +124,39 @@ public class ListUserAddedActivity extends AppCompatActivity {
         }
 
         // Charger les utilisateurs qui sont déjà dans le groupe
-        fetchUsersFromUserGroups(groupId);
+        fetchGroupInfo();
     }
 
+
+    private void fetchGroupInfo() {
+        db.collection("groups")
+                .document(groupId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        groupCreatorId = documentSnapshot.getString("creator");
+
+                        // Logique de visibilité des boutons
+                        if (currentUserId.equals(groupCreatorId)) {
+                            // Créateur - voir seulement "Supprimer"
+                            deleteGroupButton.setVisibility(View.VISIBLE);
+                            leaveGroupButton.setVisibility(View.GONE);
+                            saveButton.setVisibility(View.VISIBLE);
+                        } else {
+                            // Membre normal - voir seulement "Quitter"
+                            deleteGroupButton.setVisibility(View.GONE);
+                            leaveGroupButton.setVisibility(View.VISIBLE);
+                            saveButton.setVisibility(View.GONE);
+                        }
+
+                        fetchUsersFromUserGroups(groupId);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Erreur de chargement du groupe", Toast.LENGTH_SHORT).show();
+                    finish();
+                });
+    }
     public void onMapButtonClicked(View view){
         Intent intent = new Intent(ListUserAddedActivity.this, MapActivity.class);
         intent.putExtra("group_id", groupId); // Passer l'ID du groupe à ChatActivity
@@ -203,5 +251,64 @@ public class ListUserAddedActivity extends AppCompatActivity {
         Intent intent = new Intent(ListUserAddedActivity.this, ChatActivity.class);
         intent.putExtra("id", groupId); // Passer l'ID du groupe à ChatActivity
         startActivity(intent);
+    }
+
+    public void onDeleteGroupClicked(View view) {
+        new AlertDialog.Builder(this)
+                .setTitle("Confirmer la suppression")
+                .setMessage("Êtes-vous sûr de vouloir supprimer définitivement ce groupe ?")
+                .setPositiveButton("Supprimer", (dialog, which) -> {
+                    // 1. Supprimer toutes les relations user_groups
+                    db.collection("user_groups")
+                            .whereEqualTo("groupId", groupId)
+                            .get()
+                            .addOnSuccessListener(querySnapshot -> {
+                                WriteBatch batch = db.batch();
+                                for (QueryDocumentSnapshot doc : querySnapshot) {
+                                    batch.delete(doc.getReference());
+                                }
+
+                                // 2. Supprimer le groupe lui-même
+                                batch.delete(db.collection("groups").document(groupId));
+
+                                batch.commit()
+                                        .addOnSuccessListener(aVoid -> {
+                                            Toast.makeText(this, "Groupe supprimé", Toast.LENGTH_SHORT).show();
+                                            finish();
+                                            //Intent intent = new Intent(ListUserAddedActivity.this, MainActivity.class);
+                                            Intent intent = new Intent(ListUserAddedActivity.this, ListGroupActivity.class);
+                                            startActivity(intent);
+                                        });
+                            });
+
+                })
+                .setNegativeButton("Annuler", null)
+                .show();
+
+
+    }
+
+    public void onLeaveGroupClicked(View view) {
+        new AlertDialog.Builder(this)
+                .setTitle("Confirmer la sortie")
+                .setMessage("Voulez-vous vraiment quitter ce groupe ?")
+                .setPositiveButton("Quitter", (dialog, which) -> {
+                    // Supprimer la relation user_groups pour cet utilisateur
+                    db.collection("user_groups")
+                            .whereEqualTo("groupId", groupId)
+                            .whereEqualTo("userId", currentUserId)
+                            .get()
+                            .addOnSuccessListener(querySnapshot -> {
+                                if (!querySnapshot.isEmpty()) {
+                                    querySnapshot.getDocuments().get(0).getReference().delete()
+                                            .addOnSuccessListener(aVoid -> {
+                                                Toast.makeText(this, "Vous avez quitté le groupe", Toast.LENGTH_SHORT).show();
+                                                finish();
+                                            });
+                                }
+                            });
+                })
+                .setNegativeButton("Annuler", null)
+                .show();
     }
 }

@@ -10,15 +10,15 @@
     android:padding="24dp"
     tools:context=".ListGroupActivity">
 
-    <!-- Titre -->
+    <!-- Header Text (User Info) -->
     <TextView
-        android:id="@+id/titleTextView"
+        android:id="@+id/headerTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:text="My Groups"
+        android:text="Welcome"
         android:textColor="#6200EE"
         android:textSize="24sp"
         android:textStyle="bold"
@@ -26,7 +26,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- ListView original (conservé pour compatibilité) -->
+
+    <!-- Group List -->
     <ListView
         android:id="@+id/listViewListGroup"
         android:layout_width="0dp"
@@ -37,48 +38,72 @@
         android:layout_marginBottom="16dp"
         android:divider="#E0E0E0"
         android:dividerHeight="1dp"
-        app:layout_constraintBottom_toTopOf="@+id/joinGroupButton"
+        app:layout_constraintBottom_toTopOf="@+id/actionsLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/titleTextView" />
+        app:layout_constraintTop_toBottomOf="@+id/headerTextView" />
 
-    <!-- Bouton Rejoindre un groupe -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/joinGroupButton"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+    <!-- Actions Layout (Contains Join and Create buttons) -->
+    <LinearLayout
+        android:id="@+id/actionsLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="16dp"
-        android:onClick="onJoinGroupButtonClicked"
-        android:text="Join Group"
-        android:textColor="#6200EE"
-        app:cornerRadius="8dp"
-        app:icon="@android:drawable/ic_menu_add"
-        app:iconTint="#6200EE"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/createGroupButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:strokeColor="#6200EE" />
-
-    <!-- Bouton Créer un groupe -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/createGroupButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        android:onClick="onCreateGroupButtonClicked"
-        android:text="Create"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/logoutButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <!-- Join Group Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/joinGroupButton"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:onClick="onJoinGroupButtonClicked"
+            android:text="Join Group"
+            android:textColor="#6200EE"
+            app:cornerRadius="8dp"
+            app:icon="@android:drawable/ic_menu_add"
+            app:iconTint="#6200EE"
+            app:strokeColor="#6200EE" />
+
+        <!-- Create Group Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/createGroupButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:onClick="onCreateGroupButtonClicked"
+            android:text="Create"
+            android:textColor="#FFFFFF"
+            app:backgroundTint="#6200EE"
+            app:cornerRadius="8dp"
+            app:icon="@android:drawable/ic_menu_edit"
+            app:iconTint="#FFFFFF" />
+    </LinearLayout>
+
+    <!-- Logout Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/logoutButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:onClick="onLogoutButtonClicked"
+        android:text="Logout"
         android:textColor="#FFFFFF"
-        app:backgroundTint="#6200EE"
+        app:backgroundTint="#F44336"
         app:cornerRadius="8dp"
-        app:icon="@android:drawable/ic_menu_edit"
-        app:iconTint="#FFFFFF"
+        app:icon="@android:drawable/ic_lock_power_off"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/joinGroupButton" />
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
